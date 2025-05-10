@@ -1,7 +1,9 @@
 # curado_usda/config.py
 
 from typing import List
-from pydantic import BaseSettings, Field, HttpUrl
+# In Pydantic v2, BaseSettings has moved to pydantic-settings
+from pydantic_settings import BaseSettings
+from pydantic import Field, HttpUrl
 
 
 class Settings(BaseSettings):
@@ -51,22 +53,13 @@ class Settings(BaseSettings):
         description="Max LRU cache size for USDA lookups"
     )
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        # map each field name to its exact ENV var
-        fields = {
-            "USDA_API_KEY":         {"env": "USDA_API_KEY"},
-            "USDA_BASE_URL":        {"env": "USDA_BASE_URL"},
-            "DEBUG":                {"env": "DEBUG"},
-            "LOG_LEVEL":            {"env": "LOG_LEVEL"},
-            "CORS_ALLOW_ORIGINS":   {"env": "CORS_ALLOW_ORIGINS"},
-            "CORS_ALLOW_METHODS":   {"env": "CORS_ALLOW_METHODS"},
-            "CORS_ALLOW_HEADERS":   {"env": "CORS_ALLOW_HEADERS"},
-            "CORS_ALLOW_CREDENTIALS":{"env": "CORS_ALLOW_CREDENTIALS"},
-            "DEFAULT_PAGE_SIZE":    {"env": "DEFAULT_PAGE_SIZE"},
-            "MAX_CACHE_SIZE":       {"env": "MAX_CACHE_SIZE"},
-        }
+    # In Pydantic v2, Config is replaced with model_config
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",  # Ignore extra fields in the .env file
+        # In v2, environment variables are automatically mapped by field name
+    }
 
 # singleton settings for import
 settings = Settings()

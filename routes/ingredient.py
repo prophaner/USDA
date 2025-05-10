@@ -10,7 +10,12 @@ router = APIRouter(
     tags=["ingredient"],
 )
 
-@router.get("/", response_model=Ingredient, summary="Fetch detailed ingredient data")
+@router.get("/", response_model=Ingredient, responses={
+               200: {"description": "Successful response with ingredient details"},
+               404: {"description": "Ingredient not found"},
+               422: {"description": "Invalid parameters"},
+               500: {"description": "USDA API error"}
+           }, summary="Fetch detailed ingredient data")
 def get_ingredient(
     q: Optional[str] = Query(None, min_length=1, description="Free‑text search for ingredient"),
     fdc_id: Optional[int] = Query(None, description="Exact USDA FDC ID for ingredient"),
@@ -25,7 +30,7 @@ def get_ingredient(
     # Resolve fdc_id via search if q provided
     if not fdc_id:
         if not q:
-            raise HTTPException(400, detail="Provide either 'q' or 'fdc_id'.")
+            raise HTTPException(422, detail="Provide either 'q' or 'fdc_id'.")
         hits = _search_usda(_clean(q), limit=1)
         if not hits:
             raise HTTPException(404, detail="Ingredient not found for query.")
@@ -67,10 +72,9 @@ def get_ingredient(
     nutrients: List[Nutrient] = []
     for item in details.get("foodNutrients", []):
         num = item.get("nutrient", {}).get("number")
-        key = settings.NUTRIENT_MAP.get(num) if hasattr(settings, 'NUTRIENT_MAP') else None
-        # fallback to module-level map
-        from helpers import NUTRIENT_MAP as GLOBAL_MAP
-        key = key or GLOBAL_MAP.get(num)
+        # Use the NUTRIENT_MAP from helpers
+        from helpers import NUTRIENT_MAP
+        key = NUTRIENT_MAP.get(num)
         if key:
             nutrients.append(Nutrient(
                 key=key,
@@ -82,10 +86,15 @@ def get_ingredient(
             ))
 
     # Assemble Ingredient
+    # Handle foodCategory which can be a string or a dict
+    food_category = details.get("foodCategory")
+    if isinstance(food_category, dict):
+        food_category = food_category.get("description", "")
+    
     ingredient = Ingredient(
         fdc_id=fdc_id,
         description=details.get("description", ""),
-        category=details.get("foodCategory"),
+        category=food_category,
         data_type=details.get("dataType"),
         serving=serving,
         portions=portions,

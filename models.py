@@ -65,6 +65,93 @@ class Ingredient(BaseModel):
     serving: Portion = Field(..., description="The chosen serving for scaling")
     portions: List[Portion] = Field(..., description="Available portion options")
     nutrients: List[Nutrient] = Field(..., description="Scaled nutrients for serving")
+    
+    @classmethod
+    def from_food_details(cls, details):
+        """
+        Factory method to create an Ingredient from USDA FoodData Central API response.
+        
+        Args:
+            details: Raw JSON response from USDA API
+            
+        Returns:
+            Ingredient: Fully populated ingredient with portions and nutrients
+        """
+        # Create a default portion (100g)
+        default_portion = Portion(
+            unit="g",
+            amount=100.0,
+            grams=100.0,
+            description="100 g"
+        )
+        
+        # Extract available portions from foodPortions
+        portions = [default_portion]
+        if "foodPortions" in details:
+            for p in details["foodPortions"]:
+                if "amount" in p and "gramWeight" in p:
+                    unit = "serving"
+                    if "portionDescription" in p:
+                        desc = p["portionDescription"]
+                        if "cup" in desc.lower():
+                            unit = "cup"
+                        elif "tbsp" in desc.lower() or "tablespoon" in desc.lower():
+                            unit = "tbsp"
+                        elif "tsp" in desc.lower() or "teaspoon" in desc.lower():
+                            unit = "tsp"
+                        elif "oz" in desc.lower() or "ounce" in desc.lower():
+                            unit = "oz"
+                    
+                    portion = Portion(
+                        unit=unit,
+                        amount=float(p["amount"]),
+                        grams=float(p["gramWeight"]),
+                        description=p.get("portionDescription", f"{p['amount']} {unit}")
+                    )
+                    portions.append(portion)
+        
+        # Extract nutrients
+        nutrients = []
+        if "foodNutrients" in details:
+            for n in details["foodNutrients"]:
+                if "nutrient" in n and "amount" in n and n["amount"]:
+                    nutrient_info = n["nutrient"]
+                    key = nutrient_info.get("name", "").lower().replace(" ", "_")
+                    
+                    # Map common nutrients to simpler keys
+                    if "protein" in key:
+                        key = "protein"
+                    elif "lipid" in key or "fat" in key:
+                        key = "fat"
+                    elif "carbohydrate" in key:
+                        key = "carbs"
+                    elif "energy" in key and "kcal" in nutrient_info.get("unitName", "").lower():
+                        key = "calories"
+                    
+                    nutrients.append(Nutrient(
+                        key=key,
+                        name=nutrient_info.get("name", ""),
+                        value=float(n["amount"]),
+                        unit=nutrient_info.get("unitName", "g").lower(),
+                        min=None,
+                        max=None
+                    ))
+        
+        # Handle foodCategory which can be a string or a dict
+        food_category = details.get("foodCategory")
+        if isinstance(food_category, dict):
+            food_category = food_category.get("description", "")
+            
+        # Create the ingredient
+        return cls(
+            fdc_id=details["fdcId"],
+            description=details["description"],
+            category=food_category,
+            data_type=details.get("dataType"),
+            serving=default_portion,
+            portions=portions,
+            nutrients=nutrients
+        )
 
     def scale(self, amount: float, unit: str) -> None:
         """

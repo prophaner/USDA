@@ -7,16 +7,26 @@ def calculate_recipe(items: List[IngredientInput]) -> RecipeOutput:
     """
     Given a list of IngredientInput,
     fetch & scale each ingredient, then sum all nutrients.
+    
+    Raises:
+        ValueError: If any ingredient cannot be found or processed
     """
+    if not items:
+        raise ValueError("Empty ingredient list")
+        
     ingredients = []
     for inp in items:
-        ing = get_ingredient(
-            q      = getattr(inp, "q", None),
-            fdc_id = getattr(inp, "fdc_id", None),
-            amount = inp.amount,
-            unit   = inp.unit,
-        )
-        ingredients.append(ing)
+        try:
+            ing = get_ingredient(
+                q      = getattr(inp, "q", None),
+                fdc_id = getattr(inp, "fdc_id", None),
+                amount = inp.amount,
+                unit   = inp.unit,
+            )
+            ingredients.append(ing)
+        except Exception as e:
+            # Re-raise any errors from ingredient service
+            raise ValueError(f"Error processing ingredient: {str(e)}")
 
     # Sum totals across all ingredients
     total = {}

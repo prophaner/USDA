@@ -9,11 +9,31 @@ Main FastAPI application entrypoint. Mounts routers, applies middleware, and inc
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 
 from config import settings
 from routes.search import router as search_router
 from routes.ingredient import router as ingredient_router
 from routes.recipe import router as recipe_router
+
+# ---------------------------------------------------------------------------
+# Lifespan context manager for startup/shutdown events
+# ---------------------------------------------------------------------------
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for startup and shutdown events.
+    Code before yield runs on startup, code after yield runs on shutdown.
+    """
+    # Startup: Validate critical configuration
+    if not settings.USDA_API_KEY:
+        raise ValueError("USDA_API_KEY environment variable is required")
+    
+    yield
+    
+    # Shutdown: Add any cleanup tasks here if needed
+    # Example: close database connections, release resources, etc.
+    pass
 
 # ---------------------------------------------------------------------------
 # FastAPI application setup
@@ -23,6 +43,7 @@ app = FastAPI(
     version="1.0.0",
     debug=settings.DEBUG,
     default_response_class=JSONResponse,
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -51,15 +72,5 @@ app.include_router(recipe_router)
 def root():
     return {"message": "API running — see /docs for endpoints"}
 
-# ---------------------------------------------------------------------------
-# Startup / Shutdown events (optional)
-# ---------------------------------------------------------------------------
-# @app.on_event("startup")
-# async def on_startup():
-#     # e.g. initialize DB connections or caches
-#     pass
-
-# @app.on_event("shutdown")
-# async def on_shutdown():
-#     # cleanup tasks
-#     pass
+# Note: The lifespan implementation has been moved to the top of the file
+# and integrated with the FastAPI app initialization.
