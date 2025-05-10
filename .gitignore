@@ -1,0 +1,78 @@
+# Byte-compiled / optimized / DLL files
+
+**pycache**/
+\*.py\[cod]
+\*\$py.class
+
+# C extensions
+
+\*.so
+
+# Virtual environment
+
+.env
+.venv/
+venv/
+ENV/
+env.bak/
+
+# VS Code
+
+.vscode/
+
+# Mac
+
+.DS\_Store
+
+# Distribution / packaging
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+
+# Installer logs
+
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.\*
+.cache
+nosetests.xml
+coverage.xml
+\*,cover
+
+# Pytest
+
+.pytest\_cache/
+
+# mypy
+
+.mypy\_cache/
+
+# dotenv
+
+.env
+.env.\*
+
+# Local IDE files
+
+.idea/
+\*.sublime-workspace
+\*.sublime-project
