@@ -79,8 +79,8 @@ def get_ingredient(
             nutrients.append(Nutrient(
                 key=key,
                 name=item.get("nutrient", {}).get("name", ""),
-                value=item.get("value", 0.0),
-                unit=item.get("unitName", ""),
+                value=item.get("amount", 0.0),  # Changed from "value" to "amount"
+                unit=item.get("nutrient", {}).get("unitName", ""),
                 min=item.get("min"),
                 max=item.get("max")
             ))

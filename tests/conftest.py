@@ -70,16 +70,24 @@ def mock_usda_api():
         ],
         "foodNutrients": [
             {
-                "nutrient": {"id": 1003, "name": "Protein", "unitName": "g"},
+                "nutrient": {"id": 1003, "number": "203", "name": "Protein", "unitName": "g"},
                 "amount": 1.0
             },
             {
-                "nutrient": {"id": 1004, "name": "Total lipid (fat)", "unitName": "g"},
+                "nutrient": {"id": 1004, "number": "204", "name": "Total lipid (fat)", "unitName": "g"},
                 "amount": 0.3
             },
             {
-                "nutrient": {"id": 1005, "name": "Carbohydrate, by difference", "unitName": "g"},
+                "nutrient": {"id": 1005, "number": "205", "name": "Carbohydrate, by difference", "unitName": "g"},
                 "amount": 5.8
+            },
+            {
+                "nutrient": {"id": 1008, "number": "208", "name": "Energy", "unitName": "kcal"},
+                "amount": 50.0
+            },
+            {
+                "nutrient": {"id": 1093, "number": "307", "name": "Sodium, Na", "unitName": "mg"},
+                "amount": 3.0
             }
         ]
     }
@@ -96,26 +104,27 @@ def mock_usda_api():
                 "description": "100 g"
             }
             
-            nutrients = [
-                {
-                    "key": "protein",
-                    "name": "Protein",
-                    "value": details["foodNutrients"][0]["amount"],
-                    "unit": "g"
-                },
-                {
-                    "key": "fat",
-                    "name": "Total lipid (fat)",
-                    "value": details["foodNutrients"][1]["amount"],
-                    "unit": "g"
-                },
-                {
-                    "key": "carbs",
-                    "name": "Carbohydrate",
-                    "value": details["foodNutrients"][2]["amount"],
-                    "unit": "g"
-                }
-            ]
+            # Map nutrient numbers to keys
+            nutrient_map = {
+                "203": "protein",
+                "204": "fat",
+                "205": "carbs",
+                "208": "energy",
+                "307": "sodium"
+            }
+            
+            nutrients = []
+            for nutrient_data in details["foodNutrients"]:
+                nutrient = nutrient_data["nutrient"]
+                number = nutrient.get("number")
+                key = nutrient_map.get(number, nutrient["name"].lower().replace(" ", "_"))
+                
+                nutrients.append({
+                    "key": key,
+                    "name": nutrient["name"],
+                    "value": nutrient_data["amount"],
+                    "unit": nutrient["unitName"].lower()
+                })
             
             return {
                 "fdc_id": details["fdcId"],

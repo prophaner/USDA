@@ -60,6 +60,43 @@ def test_ingredient_by_query_success(mock_get_ingredient, client, mock_usda_api)
     assert "portions" in data
 
 @patch('services.ingredient_service.get_ingredient')
+def test_pineapple_juice_nutrients(mock_get_ingredient, client, mock_usda_api):
+    """Test getting pineapple juice with proper nutrient values."""
+    # Mock the get_ingredient function to return a dictionary with pineapple juice data
+    mock_get_ingredient.return_value = {
+        "fdc_id": 168885,
+        "description": "Pineapple juice, canned, not from concentrate, unsweetened, with added vitamins A, C and E",
+        "category": "Fruits and Fruit Juices",
+        "data_type": "SR Legacy",
+        "serving": {"unit": "g", "amount": 100.0, "grams": 100.0},
+        "portions": [
+            {"unit": "g", "amount": 100.0, "grams": 100.0},
+            {"unit": "cup", "amount": 1.0, "grams": 250.0}
+        ],
+        "nutrients": [
+            {"key": "energy", "name": "Energy", "value": 50.0, "unit": "kcal"},
+            {"key": "protein", "name": "Protein", "value": 0.4, "unit": "g"},
+            {"key": "fat", "name": "Total lipid (fat)", "value": 0.14, "unit": "g"},
+            {"key": "carbs", "name": "Carbohydrate, by difference", "value": 12.18, "unit": "g"},
+            {"key": "sodium", "name": "Sodium, Na", "value": 3.0, "unit": "mg"}
+        ]
+    }
+    
+    response = client.get("/ingredient?q=Pineapple juice, canned, not from concentrate, unsweetened, with added vitamins A, C and E")
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    
+    # Verify the response contains the expected data
+    assert data["description"] == "Pineapple juice, canned, not from concentrate, unsweetened, with added vitamins A, C and E"
+    
+    # Check that nutrients have proper values (not zero)
+    nutrients = {n["key"]: n["value"] for n in data["nutrients"]}
+    assert nutrients["energy"] == 50.0
+    assert nutrients["fat"] == 0.14
+    assert nutrients["sodium"] == 3.0
+    assert nutrients["carbs"] == 12.18
+
+@patch('services.ingredient_service.get_ingredient')
 def test_ingredient_by_id_success(mock_get_ingredient, client, mock_usda_api):
     """Test getting ingredient details by FDC ID."""
     # Mock the get_ingredient function to return a dictionary
