@@ -49,13 +49,31 @@ Content-Type: application/json
 GET /rate-limit
 ```
 
-## Rate Limit Headers
+## Rate Limiting Behavior
+
+The rate limiter counts USDA API calls, not HTTP requests to your server. This means:
+
+1. Each call to the USDA API (search or get food details) counts as one request against your limit
+2. A single HTTP request to your server might make multiple USDA API calls (e.g., the recipe endpoint)
+3. The rate limit is per IP address, so different clients have separate limits
+
+### Rate Limit Headers
 
 All responses include the following headers:
 
 - `X-RateLimit-Limit`: Maximum requests per hour (1000)
 - `X-RateLimit-Remaining`: Remaining requests in the current window
 - `X-RateLimit-Reset`: Time in seconds until the rate limit resets
+
+### Checking Your Rate Limit
+
+You can check your current rate limit status without affecting your limit by calling:
+
+```
+GET /rate-limit
+```
+
+This endpoint returns your current usage and does not count against your limit.
 
 ## Running the Async Server
 

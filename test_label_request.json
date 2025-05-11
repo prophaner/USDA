@@ -1,0 +1,261 @@
+{
+  "recipe_title": "Chicken Salad",
+  "recipe_data": {
+    "items": [
+      {
+        "fdc_id": 171115,
+        "description": "Chicken Breast",
+        "category": "Poultry",
+        "data_type": "SR Legacy",
+        "serving": {
+          "unit": "g",
+          "amount": 100.0,
+          "grams": 100.0,
+          "description": "100 g"
+        },
+        "portions": [
+          {
+            "unit": "g",
+            "amount": 100.0,
+            "grams": 100.0,
+            "description": "100 g"
+          }
+        ],
+        "nutrients": [
+          {
+            "key": "energy",
+            "name": "Energy",
+            "value": 165.0,
+            "unit": "kcal"
+          },
+          {
+            "key": "fat",
+            "name": "Total lipid (fat)",
+            "value": 3.6,
+            "unit": "g"
+          },
+          {
+            "key": "saturated_fat",
+            "name": "Fatty acids, total saturated",
+            "value": 1.0,
+            "unit": "g"
+          },
+          {
+            "key": "trans_fat",
+            "name": "Fatty acids, total trans",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "cholesterol",
+            "name": "Cholesterol",
+            "value": 85.0,
+            "unit": "mg"
+          },
+          {
+            "key": "sodium",
+            "name": "Sodium, Na",
+            "value": 74.0,
+            "unit": "mg"
+          },
+          {
+            "key": "carbs",
+            "name": "Carbohydrate, by difference",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "fiber",
+            "name": "Fiber, total dietary",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "sugars",
+            "name": "Sugars, total including NLEA",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "protein",
+            "name": "Protein",
+            "value": 31.0,
+            "unit": "g"
+          }
+        ]
+      },
+      {
+        "fdc_id": 170457,
+        "description": "Lettuce",
+        "category": "Vegetables and Vegetable Products",
+        "data_type": "SR Legacy",
+        "serving": {
+          "unit": "g",
+          "amount": 100.0,
+          "grams": 100.0,
+          "description": "100 g"
+        },
+        "portions": [
+          {
+            "unit": "g",
+            "amount": 100.0,
+            "grams": 100.0,
+            "description": "100 g"
+          }
+        ],
+        "nutrients": [
+          {
+            "key": "energy",
+            "name": "Energy",
+            "value": 15.0,
+            "unit": "kcal"
+          },
+          {
+            "key": "fat",
+            "name": "Total lipid (fat)",
+            "value": 0.2,
+            "unit": "g"
+          },
+          {
+            "key": "saturated_fat",
+            "name": "Fatty acids, total saturated",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "trans_fat",
+            "name": "Fatty acids, total trans",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "cholesterol",
+            "name": "Cholesterol",
+            "value": 0.0,
+            "unit": "mg"
+          },
+          {
+            "key": "sodium",
+            "name": "Sodium, Na",
+            "value": 28.0,
+            "unit": "mg"
+          },
+          {
+            "key": "carbs",
+            "name": "Carbohydrate, by difference",
+            "value": 2.9,
+            "unit": "g"
+          },
+          {
+            "key": "fiber",
+            "name": "Fiber, total dietary",
+            "value": 1.3,
+            "unit": "g"
+          },
+          {
+            "key": "sugars",
+            "name": "Sugars, total including NLEA",
+            "value": 0.8,
+            "unit": "g"
+          },
+          {
+            "key": "protein",
+            "name": "Protein",
+            "value": 1.4,
+            "unit": "g"
+          }
+        ]
+      }
+    ],
+    "total": {
+      "Energy": 180.0,
+      "Total lipid (fat)": 3.8,
+      "Fatty acids, total saturated": 1.0,
+      "Fatty acids, total trans": 0.0,
+      "Cholesterol": 85.0,
+      "Sodium, Na": 102.0,
+      "Carbohydrate, by difference": 2.9,
+      "Fiber, total dietary": 1.3,
+      "Sugars, total including NLEA": 0.8,
+      "Protein": 32.4
+    }
+  },
+  "business_info": {
+    "business_name": "Healthy Meals Inc.",
+    "address": "123 Main St, Anytown, USA"
+  },
+  "label_sections": {
+    "hide_recipe_title": false,
+    "hide_nutrition_facts": false,
+    "hide_ingredient_list": false,
+    "french_first": false,
+    "english_only": true,
+    "french_only": false,
+    "hide_allergens": false,
+    "hide_facility_allergens": false,
+    "hide_business_info": false,
+    "hide_bioengineered_claim": true,
+    "indicate_bioengineered_food": false,
+    "show_caloric_conversion": true,
+    "move_footnote_section": false,
+    "shorten_footnote_section": true
+  },
+  "label_style": {
+    "language": "english",
+    "serving_size_en": "1 cup (240g)",
+    "servings_per_package": 4,
+    "varied_servings": false,
+    "compact_vitamins": true,
+    "alignment": "left",
+    "text_case": "default",
+    "width": 300,
+    "text_color": "#000000",
+    "background_color": "#FFFFFF",
+    "transparent_background": false
+  },
+  "optional_nutrients": {
+    "show_saturated_fat_calories": true,
+    "show_unsaturated_fats": true,
+    "show_potassium": true,
+    "show_other_carbs": false,
+    "show_sugar_alcohols": false,
+    "show_protein_percentage": true,
+    "protein_score": 1.0
+  },
+  "optional_vitamins": {
+    "toggle_all": false,
+    "show_vitamin_a": true,
+    "show_vitamin_c": true,
+    "show_vitamin_d": true,
+    "show_vitamin_e": false,
+    "show_vitamin_k": false,
+    "show_thiamin": false,
+    "show_riboflavin": false,
+    "show_niacin": false,
+    "show_vitamin_b6": false,
+    "show_folate": false,
+    "show_vitamin_b12": false,
+    "show_pantothenic_acid": false,
+    "show_phosphorus": false,
+    "show_magnesium": false,
+    "show_zinc": false,
+    "show_selenium": false,
+    "show_copper": false,
+    "show_manganese": false
+  },
+  "nutrition_adjustments": {
+    "calories": 180.0,
+    "fat": 3.8,
+    "saturated_fat": 1.0,
+    "trans_fat": 0.0,
+    "cholesterol": 85.0,
+    "sodium": 102.0,
+    "carbohydrates": 2.9,
+    "dietary_fiber": 1.3,
+    "sugars": 0.8,
+    "protein": 32.4
+  },
+  "label_type": "USDA (Old FDA) Vertical",
+  "allergens": ["Eggs", "Milk"],
+  "facility_allergens": ["Peanuts", "Tree Nuts"]
+}

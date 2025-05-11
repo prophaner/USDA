@@ -71,19 +71,21 @@ def get_ingredient(
     # Extract nutrients
     nutrients: List[Nutrient] = []
     for item in details.get("foodNutrients", []):
-        num = item.get("nutrient", {}).get("number")
-        # Use the NUTRIENT_MAP from helpers
-        from helpers import NUTRIENT_MAP
-        key = NUTRIENT_MAP.get(num)
-        if key:
-            nutrients.append(Nutrient(
-                key=key,
-                name=item.get("nutrient", {}).get("name", ""),
-                value=item.get("amount", 0.0),  # Changed from "value" to "amount"
-                unit=item.get("nutrient", {}).get("unitName", ""),
-                min=item.get("min"),
-                max=item.get("max")
-            ))
+        if "nutrient" in item and "amount" in item:
+            nutrient_info = item["nutrient"]
+            num = nutrient_info.get("number")
+            # Use the NUTRIENT_MAP from helpers
+            from helpers import NUTRIENT_MAP
+            key = NUTRIENT_MAP.get(num)
+            if key:
+                nutrients.append(Nutrient(
+                    key=key,
+                    name=nutrient_info.get("name", ""),
+                    value=float(item["amount"]),  # Ensure we're using the amount field and converting to float
+                    unit=nutrient_info.get("unitName", "").lower(),
+                    min=item.get("min"),
+                    max=item.get("max")
+                ))
 
     # Assemble Ingredient
     # Handle foodCategory which can be a string or a dict

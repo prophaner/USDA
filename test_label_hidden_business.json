@@ -1,0 +1,117 @@
+{
+  "recipe_title": "Chicken Salad",
+  "recipe_data": {
+    "items": [
+      {
+        "fdc_id": 171115,
+        "description": "Chicken Breast",
+        "category": "Poultry",
+        "data_type": "SR Legacy",
+        "serving": {
+          "unit": "g",
+          "amount": 100.0,
+          "grams": 100.0,
+          "description": "100 g"
+        },
+        "portions": [
+          {
+            "unit": "g",
+            "amount": 100.0,
+            "grams": 100.0,
+            "description": "100 g"
+          }
+        ],
+        "nutrients": [
+          {
+            "key": "energy",
+            "name": "Energy",
+            "value": 165.0,
+            "unit": "kcal"
+          },
+          {
+            "key": "fat",
+            "name": "Total lipid (fat)",
+            "value": 3.6,
+            "unit": "g"
+          },
+          {
+            "key": "saturated_fat",
+            "name": "Fatty acids, total saturated",
+            "value": 1.0,
+            "unit": "g"
+          },
+          {
+            "key": "trans_fat",
+            "name": "Fatty acids, total trans",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "cholesterol",
+            "name": "Cholesterol",
+            "value": 85.0,
+            "unit": "mg"
+          },
+          {
+            "key": "sodium",
+            "name": "Sodium, Na",
+            "value": 74.0,
+            "unit": "mg"
+          },
+          {
+            "key": "carbs",
+            "name": "Carbohydrate, by difference",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "fiber",
+            "name": "Fiber, total dietary",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "sugars",
+            "name": "Sugars, total including NLEA",
+            "value": 0.0,
+            "unit": "g"
+          },
+          {
+            "key": "protein",
+            "name": "Protein",
+            "value": 31.0,
+            "unit": "g"
+          }
+        ]
+      }
+    ],
+    "total": {
+      "Energy": 165.0,
+      "Total lipid (fat)": 3.6,
+      "Fatty acids, total saturated": 1.0,
+      "Fatty acids, total trans": 0.0,
+      "Cholesterol": 85.0,
+      "Sodium, Na": 74.0,
+      "Carbohydrate, by difference": 0.0,
+      "Fiber, total dietary": 0.0,
+      "Sugars, total including NLEA": 0.0,
+      "Protein": 31.0
+    }
+  },
+  "label_sections": {
+    "hide_business_info": true
+  },
+  "label_type": "USDA (Old FDA) Vertical",
+  "nutrition_adjustments": {
+    "calories": 165.0,
+    "fat": 3.6,
+    "saturated_fat": 1.0,
+    "trans_fat": 0.0,
+    "cholesterol": 85.0,
+    "sodium": 74.0,
+    "carbohydrates": 0.0,
+    "dietary_fiber": 0.0,
+    "sugars": 0.0,
+    "protein": 31.0
+  }
+}

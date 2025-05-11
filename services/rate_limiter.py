@@ -27,9 +27,40 @@ class RateLimiter:
         # Lock for thread safety
         self.lock = threading.RLock()
     
-    def is_allowed(self, ip_address: str) -> Tuple[bool, int]:
+    def check_limit(self, ip_address: str) -> Tuple[bool, int]:
         """
-        Check if a request from the given IP is allowed.
+        Check if a request from the given IP is allowed without incrementing the counter.
+        
+        Args:
+            ip_address: The IP address making the request
+            
+        Returns:
+            Tuple of (is_allowed, remaining_requests)
+        """
+        with self.lock:
+            # Initialize if this is the first request from this IP
+            if ip_address not in self.request_logs:
+                self.request_logs[ip_address] = deque()
+            
+            # Get the current time
+            current_time = time.time()
+            
+            # Remove timestamps outside the window
+            self._clean_old_requests(ip_address, current_time)
+            
+            # Check if we're at the limit
+            current_count = len(self.request_logs[ip_address])
+            if current_count >= self.max_requests:
+                remaining = 0
+                return False, remaining
+            
+            # Calculate remaining requests
+            remaining = self.max_requests - current_count
+            return True, remaining
+    
+    def increment(self, ip_address: str) -> Tuple[bool, int]:
+        """
+        Increment the counter for the given IP address and check if it's allowed.
         
         Args:
             ip_address: The IP address making the request

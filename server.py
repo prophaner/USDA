@@ -15,6 +15,7 @@ from config import settings
 from routes.search import router as search_router
 from routes.ingredient import router as ingredient_router
 from routes.recipe import router as recipe_router
+from routes.label import router as label_router
 
 # ---------------------------------------------------------------------------
 # Lifespan context manager for startup/shutdown events
@@ -60,10 +61,11 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 # Include Routers
 # ---------------------------------------------------------------------------
-# Each router already defines its own prefix (e.g. /search, /ingredient, /recipe)
+# Each router already defines its own prefix (e.g. /search, /ingredient, /recipe, /label)
 app.include_router(search_router)
 app.include_router(ingredient_router)
 app.include_router(recipe_router)
+app.include_router(label_router)
 
 # ---------------------------------------------------------------------------
 # Root health-check

@@ -65,10 +65,21 @@ def test_nutrient_extraction_from_amount_field(mock_get_food, mock_search_usda):
     # Call the service function
     result = get_ingredient(q="Pineapple juice")
     
+    # Print all nutrients for debugging
+    print("\nAll nutrients in result:")
+    for n in result.nutrients:
+        print(f"{n.key}: {n.value} {n.unit}")
+    
     # Find nutrients by key
     energy_nutrient = next((n for n in result.nutrients if n.key == "energy"), None)
     protein_nutrient = next((n for n in result.nutrients if n.key == "protein"), None)
     fat_nutrient = next((n for n in result.nutrients if n.key == "fat"), None)
+    
+    # Print found nutrients
+    print("\nFound nutrients:")
+    print(f"Energy: {energy_nutrient}")
+    print(f"Protein: {protein_nutrient}")
+    print(f"Fat: {fat_nutrient}")
     
     # Verify nutrients exist
     assert energy_nutrient is not None, "Energy nutrient not found"

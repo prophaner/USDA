@@ -9,7 +9,7 @@ Pydantic models for USDA nutrition API:
 - IngredientInput & RecipeOutput for recipe aggregation
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union, Literal
 from pydantic import BaseModel, Field, validator
 from helpers import convert_units
 
@@ -116,17 +116,29 @@ class Ingredient(BaseModel):
             for n in details["foodNutrients"]:
                 if "nutrient" in n and "amount" in n and n["amount"]:
                     nutrient_info = n["nutrient"]
-                    key = nutrient_info.get("name", "").lower().replace(" ", "_")
                     
-                    # Map common nutrients to simpler keys
-                    if "protein" in key:
-                        key = "protein"
-                    elif "lipid" in key or "fat" in key:
-                        key = "fat"
-                    elif "carbohydrate" in key:
-                        key = "carbs"
-                    elif "energy" in key and "kcal" in nutrient_info.get("unitName", "").lower():
-                        key = "calories"
+                    # Get the nutrient number for mapping
+                    num = nutrient_info.get("number")
+                    
+                    # Import NUTRIENT_MAP from helpers
+                    from helpers import NUTRIENT_MAP
+                    
+                    # Try to get the key from NUTRIENT_MAP first
+                    key = NUTRIENT_MAP.get(num)
+                    
+                    # If not in the map, use a fallback approach
+                    if not key:
+                        key = nutrient_info.get("name", "").lower().replace(" ", "_")
+                        
+                        # Map common nutrients to simpler keys
+                        if "protein" in key:
+                            key = "protein"
+                        elif "lipid" in key or "fat" in key:
+                            key = "fat"
+                        elif "carbohydrate" in key:
+                            key = "carbs"
+                        elif "energy" in key and "kcal" in nutrient_info.get("unitName", "").lower():
+                            key = "energy"
                     
                     nutrients.append(Nutrient(
                         key=key,
@@ -202,3 +214,151 @@ class RecipeOutput(BaseModel):
     """Aggregated nutritional totals for a recipe."""
     items: List[Ingredient] = Field(..., description="Per-ingredient details")
     total: Dict[str, float] = Field(..., description="Summed nutrient values by key")
+
+
+class LabelSections(BaseModel):
+    """Label section visibility options."""
+    hide_recipe_title: bool = Field(False, description="Hide recipe title")
+    hide_nutrition_facts: bool = Field(False, description="Hide nutrition facts")
+    hide_ingredient_list: bool = Field(False, description="Hide ingredient list")
+    french_first: bool = Field(False, description="French first")
+    english_only: bool = Field(False, description="English only")
+    french_only: bool = Field(False, description="French only")
+    hide_allergens: bool = Field(False, description="Hide allergens")
+    hide_facility_allergens: bool = Field(False, description="Hide facility allergens")
+    hide_business_info: bool = Field(False, description="Hide business info")
+    hide_bioengineered_claim: bool = Field(False, description="Hide bioengineered claim")
+    indicate_bioengineered_food: bool = Field(False, description="Indicate bioengineered food")
+    show_caloric_conversion: bool = Field(False, description="Show caloric conversion")
+    move_footnote_section: bool = Field(False, description="Move footnote section")
+    shorten_footnote_section: bool = Field(False, description="Shorten footnote section")
+
+
+class LabelStyle(BaseModel):
+    """Label style options."""
+    language: Literal["english", "french"] = Field("english", description="Language selector")
+    serving_size_en: Optional[str] = Field(None, description="Serving size in English")
+    serving_size_fr: Optional[str] = Field(None, description="Serving size in French")
+    as_sold_description_en: Optional[str] = Field(None, description="As sold description in English")
+    as_sold_description_fr: Optional[str] = Field(None, description="As sold description in French")
+    as_prepared_description_en: Optional[str] = Field(None, description="As prepared description in English")
+    as_prepared_description_fr: Optional[str] = Field(None, description="As prepared description in French")
+    servings_per_package: Optional[float] = Field(None, description="Servings per package")
+    varied_servings: bool = Field(False, description="Varied Servings")
+    compact_vitamins: bool = Field(False, description="Compact vitamins")
+    alignment: Literal["left", "center"] = Field("left", description="Text alignment")
+    text_case: Literal["default", "lowercase", "titlecase"] = Field("default", description="Text case")
+    width: int = Field(300, description="Label width in pixels")
+    text_color: str = Field("#000000", description="Label text color")
+    background_color: str = Field("#FFFFFF", description="Label background color")
+    transparent_background: bool = Field(False, description="Transparent background")
+
+
+class OptionalNutrients(BaseModel):
+    """Optional nutrients to display."""
+    show_saturated_fat_calories: bool = Field(False, description="Show saturated fat calories")
+    show_unsaturated_fats: bool = Field(False, description="Show unsaturated fats")
+    show_potassium: bool = Field(False, description="Show potassium")
+    show_other_carbs: bool = Field(False, description="Show other carbs")
+    show_sugar_alcohols: bool = Field(False, description="Show sugar alcohols")
+    show_protein_percentage: bool = Field(False, description="Show protein percentage")
+    protein_score: float = Field(1.0, description="Protein Score", ge=0.0, le=1.0)
+
+
+class OptionalVitamins(BaseModel):
+    """Optional vitamins to display."""
+    toggle_all: bool = Field(False, description="Toggle all vitamins")
+    show_vitamin_a: bool = Field(False, description="Show Vitamin A")
+    show_vitamin_c: bool = Field(False, description="Show Vitamin C")
+    show_vitamin_d: bool = Field(False, description="Show Vitamin D")
+    show_vitamin_e: bool = Field(False, description="Show Vitamin E")
+    show_vitamin_k: bool = Field(False, description="Show Vitamin K")
+    show_thiamin: bool = Field(False, description="Show Thiamin")
+    show_riboflavin: bool = Field(False, description="Show Riboflavin")
+    show_niacin: bool = Field(False, description="Show Niacin")
+    show_vitamin_b6: bool = Field(False, description="Show Vitamin B6")
+    show_folate: bool = Field(False, description="Show Folate")
+    show_vitamin_b12: bool = Field(False, description="Show Vitamin B12")
+    show_pantothenic_acid: bool = Field(False, description="Show Pantothenic Acid")
+    show_phosphorus: bool = Field(False, description="Show Phosphorus")
+    show_magnesium: bool = Field(False, description="Show Magnesium")
+    show_zinc: bool = Field(False, description="Show Zinc")
+    show_selenium: bool = Field(False, description="Show Selenium")
+    show_copper: bool = Field(False, description="Show Copper")
+    show_manganese: bool = Field(False, description="Show Manganese")
+
+
+class NutritionAdjustments(BaseModel):
+    """Nutrition value adjustments."""
+    calories: Optional[float] = Field(None, description="Calories")
+    fat: Optional[float] = Field(None, description="Fat")
+    saturated_fat: Optional[float] = Field(None, description="Saturated Fat")
+    trans_fat: Optional[float] = Field(None, description="Trans Fat")
+    polyunsaturated_fat: Optional[float] = Field(None, description="Polyunsaturated Fat")
+    monounsaturated_fat: Optional[float] = Field(None, description="Monounsaturated Fat")
+    cholesterol: Optional[float] = Field(None, description="Cholesterol")
+    sodium: Optional[float] = Field(None, description="Sodium")
+    carbohydrates: Optional[float] = Field(None, description="Carbohydrates")
+    dietary_fiber: Optional[float] = Field(None, description="Dietary Fiber")
+    sugars: Optional[float] = Field(None, description="Sugars")
+    added_sugars: Optional[float] = Field(None, description="Added Sugars")
+    sugar_alcohol: Optional[float] = Field(None, description="Sugar Alcohol")
+    protein: Optional[float] = Field(None, description="Protein")
+    vitamin_d: Optional[float] = Field(None, description="Vitamin D")
+    calcium: Optional[float] = Field(None, description="Calcium")
+    iron: Optional[float] = Field(None, description="Iron")
+    potassium: Optional[float] = Field(None, description="Potassium")
+    vitamin_a: Optional[float] = Field(None, description="Vitamin A")
+    vitamin_c: Optional[float] = Field(None, description="Vitamin C")
+    vitamin_e: Optional[float] = Field(None, description="Vitamin E")
+    vitamin_k: Optional[float] = Field(None, description="Vitamin K")
+    thiamin: Optional[float] = Field(None, description="Thiamin")
+    riboflavin: Optional[float] = Field(None, description="Riboflavin")
+    niacin: Optional[float] = Field(None, description="Niacin")
+    vitamin_b6: Optional[float] = Field(None, description="Vitamin B6")
+    folate: Optional[float] = Field(None, description="Folate")
+    vitamin_b12: Optional[float] = Field(None, description="Vitamin B12")
+    pantothenic_acid: Optional[float] = Field(None, description="Pantothenic Acid")
+    phosphorus: Optional[float] = Field(None, description="Phosphorus")
+    magnesium: Optional[float] = Field(None, description="Magnesium")
+    zinc: Optional[float] = Field(None, description="Zinc")
+    selenium: Optional[float] = Field(None, description="Selenium")
+    copper: Optional[float] = Field(None, description="Copper")
+    manganese: Optional[float] = Field(None, description="Manganese")
+
+
+class BusinessInfo(BaseModel):
+    """Business information."""
+    business_name: str = Field(..., description="Business name")
+    address: Optional[str] = Field(None, description="Business address")
+
+
+class LabelInput(BaseModel):
+    """Input schema for label generation."""
+    recipe_title: str = Field(..., description="Recipe title")
+    recipe_data: RecipeOutput = Field(..., description="Recipe nutritional data")
+    label_sections: Optional[LabelSections] = Field(None, description="Label section visibility options")
+    label_style: Optional[LabelStyle] = Field(None, description="Label style options")
+    optional_nutrients: Optional[OptionalNutrients] = Field(None, description="Optional nutrients to display")
+    optional_vitamins: Optional[OptionalVitamins] = Field(None, description="Optional vitamins to display")
+    nutrition_adjustments: Optional[NutritionAdjustments] = Field(None, description="Nutrition value adjustments")
+    label_type: str = Field("USDA (Old FDA) Vertical", description="Label type")
+    business_info: Optional[BusinessInfo] = Field(None, description="Business information")
+    allergens: Optional[List[str]] = Field(None, description="List of allergens")
+    facility_allergens: Optional[List[str]] = Field(None, description="List of facility allergens")
+
+
+class LabelOutput(BaseModel):
+    """Output schema for label generation."""
+    label_url: str = Field(..., description="URL to the generated label")
+    pdf_download_url: str = Field(..., description="URL to download the label as PDF")
+    png_download_url: str = Field(..., description="URL to download the label as PNG")
+    embedded_html: str = Field(..., description="HTML code to embed the label in a UI")
+    label_data: Dict = Field(..., description="Label data used for generation")
+    missing_elements: Optional[List[str]] = Field(None, description="List of missing elements if any")
+    
+    
+class LabelValidationError(BaseModel):
+    """Error response for label validation."""
+    detail: str = Field(..., description="Error message")
+    missing_elements: List[str] = Field(..., description="List of missing required elements")

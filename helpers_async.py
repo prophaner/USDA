@@ -101,6 +101,7 @@ http_client = httpx.AsyncClient(timeout=10.0)
 async def _check_rate_limit(request: Request) -> None:
     """
     Check if the current request is allowed by the rate limiter.
+    Increments the counter if allowed.
     
     Args:
         request: The FastAPI request object
@@ -111,8 +112,8 @@ async def _check_rate_limit(request: Request) -> None:
     # Get the client's IP address
     client_ip = request.client.host if request.client else "unknown"
     
-    # Check if the request is allowed
-    allowed, remaining = usda_rate_limiter.is_allowed(client_ip)
+    # Check if the request is allowed and increment the counter
+    allowed, remaining = usda_rate_limiter.increment(client_ip)
     
     if not allowed:
         # If not allowed, raise an HTTPException with a 429 status code

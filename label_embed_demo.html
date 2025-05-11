@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USDA Label Embed Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #336633;
+        }
+        .label-container {
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .download-links {
+            margin: 20px 0;
+        }
+        .download-links a {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 10px 15px;
+            background-color: #336633;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .download-links a:hover {
+            background-color: #264d26;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>USDA Label Embed Demo</h1>
+    
+    <p>This page demonstrates how to embed a USDA Nutrition Label in your web application.</p>
+    
+    <h2>Embedded Label</h2>
+    <div class="label-container">
+        <!-- Replace this with the actual embedded HTML from the API response -->
+        <iframe 
+            src="https://api.example.com/labels/sample-id/embed" 
+            width="100%" 
+            height="600" 
+            frameborder="0" 
+            scrolling="no" 
+            allowfullscreen>
+        </iframe>
+    </div>
+    
+    <h2>Download Options</h2>
+    <div class="download-links">
+        <a href="https://api.example.com/labels/sample-id/download/pdf" target="_blank">Download PDF</a>
+        <a href="https://api.example.com/labels/sample-id/download/png" target="_blank">Download PNG</a>
+    </div>
+    
+    <h2>How to Use</h2>
+    <p>To embed a USDA Nutrition Label in your application:</p>
+    <ol>
+        <li>Make a POST request to the <code>/label/</code> endpoint with your recipe data</li>
+        <li>Get the <code>embedded_html</code> from the response</li>
+        <li>Insert the HTML code into your page</li>
+    </ol>
+    
+    <h3>Example Code</h3>
+    <pre>
+// JavaScript example
+fetch('http://127.0.0.1:8000/label/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        recipe_title: "Chicken Salad",
+        recipe_data: { /* Your recipe data */ },
+        business_info: { /* Your business info */ },
+        label_type: "USDA (Old FDA) Vertical"
+    })
+})
+.then(response => response.json())
+.then(data => {
+    // Display the embedded label
+    document.getElementById('label-container').innerHTML = data.embedded_html;
+    
+    // Set up download links
+    document.getElementById('pdf-link').href = data.pdf_download_url;
+    document.getElementById('png-link').href = data.png_download_url;
+})
+.catch(error => console.error('Error:', error));
+    </pre>
+    
+    <p>For more information, refer to the API documentation.</p>
+</body>
+</html>

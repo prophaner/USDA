@@ -15,6 +15,7 @@ from config import settings
 from routes.search_async import router as search_router
 from routes.ingredient_async import router as ingredient_router
 from routes.recipe_async import router as recipe_router
+from routes.label_async import router as label_router
 from services.rate_limiter import usda_rate_limiter
 
 # ---------------------------------------------------------------------------
@@ -73,7 +74,7 @@ async def add_rate_limit_headers(request: Request, call_next):
     client_ip = request.client.host if request.client else "unknown"
     
     # Check current rate limit status (without incrementing)
-    allowed, remaining = usda_rate_limiter.is_allowed(client_ip)
+    allowed, remaining = usda_rate_limiter.check_limit(client_ip)
     
     # Process the request
     response = await call_next(request)
@@ -88,10 +89,11 @@ async def add_rate_limit_headers(request: Request, call_next):
 # ---------------------------------------------------------------------------
 # Include Routers
 # ---------------------------------------------------------------------------
-# Each router already defines its own prefix (e.g. /search, /ingredient, /recipe)
+# Each router already defines its own prefix (e.g. /search, /ingredient, /recipe, /label)
 app.include_router(search_router)
 app.include_router(ingredient_router)
 app.include_router(recipe_router)
+app.include_router(label_router)
 
 # ---------------------------------------------------------------------------
 # Root health-check
@@ -107,9 +109,10 @@ async def root():
 async def rate_limit_status(request: Request):
     """
     Check the current rate limit status for your IP address.
+    This endpoint does not count against your rate limit.
     """
     client_ip = request.client.host if request.client else "unknown"
-    allowed, remaining = usda_rate_limiter.is_allowed(client_ip)
+    allowed, remaining = usda_rate_limiter.check_limit(client_ip)
     
     return {
         "ip": client_ip,
