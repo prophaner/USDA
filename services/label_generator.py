@@ -362,15 +362,56 @@ def generate_html(label_data: Dict, label_id: str) -> str:
     # Load the template
     template = template_env.get_template("label_template.html")
     
+    # Ensure all required nutrition fields exist
+    nutrition_adjustments = label_data.get('nutrition_adjustments', {})
+    
+    # Set default values for any missing nutrition fields
+    default_nutrition = {
+        'fat': 0,
+        'saturated_fat': 0,
+        'trans_fat': 0,
+        'cholesterol': 0,
+        'sodium': 0,
+        'carbohydrates': 0,
+        'dietary_fiber': 0,
+        'sugars': 0,
+        'added_sugars': 0,
+        'protein': 0,
+        'vitamin_d': 0,
+        'calcium': 0,
+        'iron': 0,
+        'potassium': 0
+    }
+    
+    # Update nutrition_adjustments with default values for missing fields
+    for key, default_value in default_nutrition.items():
+        if key not in nutrition_adjustments:
+            nutrition_adjustments[key] = default_value
+    
+    # Update the label_data with the complete nutrition_adjustments
+    label_data['nutrition_adjustments'] = nutrition_adjustments
+    
     # Calculate daily values percentages
     daily_values = {
-        "fat": int(label_data['nutrition_adjustments']['fat'] * 100 / 65),
-        "saturated_fat": int(label_data['nutrition_adjustments']['saturated_fat'] * 100 / 20),
-        "cholesterol": int(label_data['nutrition_adjustments']['cholesterol'] * 100 / 300),
-        "sodium": int(label_data['nutrition_adjustments']['sodium'] * 100 / 2400),
-        "carbohydrates": int(label_data['nutrition_adjustments']['carbohydrates'] * 100 / 300),
-        "dietary_fiber": int(label_data['nutrition_adjustments']['dietary_fiber'] * 100 / 25)
+        "fat": int(nutrition_adjustments['fat'] * 100 / 65),
+        "saturated_fat": int(nutrition_adjustments['saturated_fat'] * 100 / 20),
+        "cholesterol": int(nutrition_adjustments['cholesterol'] * 100 / 300),
+        "sodium": int(nutrition_adjustments['sodium'] * 100 / 2400),
+        "carbohydrates": int(nutrition_adjustments['carbohydrates'] * 100 / 300),
+        "dietary_fiber": int(nutrition_adjustments['dietary_fiber'] * 100 / 25),
+        "vitamin_d": int(nutrition_adjustments['vitamin_d'] * 100 / 20) if nutrition_adjustments.get('vitamin_d', 0) > 0 else 0,
+        "calcium": int(nutrition_adjustments['calcium'] * 100 / 1300) if nutrition_adjustments.get('calcium', 0) > 0 else 0,
+        "iron": int(nutrition_adjustments['iron'] * 100 / 18) if nutrition_adjustments.get('iron', 0) > 0 else 0,
+        "potassium": int(nutrition_adjustments['potassium'] * 100 / 4700) if nutrition_adjustments.get('potassium', 0) > 0 else 0
     }
+    
+    # Ensure label_style exists
+    if 'label_style' not in label_data:
+        label_data['label_style'] = {}
+    
+    # Ensure label_sections exists
+    if 'label_sections' not in label_data:
+        label_data['label_sections'] = {}
     
     # Render the template with the label data
     html_content = template.render(
@@ -401,96 +442,183 @@ def create_html_template(template_path: Path) -> None:
     <title>{{ label_data.recipe_title }} - Nutrition Facts</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: {{ label_data.label_style.background_color|default('#FFFFFF') }};
             color: {{ label_data.label_style.text_color|default('#000000') }};
         }
         .label-container {
-            max-width: 600px;
+            width: 300px;
             margin: 20px auto;
-            padding: 20px;
-            border: 2px solid #000;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            box-sizing: border-box;
         }
         .recipe-title {
             font-size: 24px;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .nutrition-header {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 15px 0;
-            border-bottom: 8px solid #000;
-            padding-bottom: 5px;
+        #newnutritionfactstable {
+            width: 100%;
+            border: 0;
+            padding: 0;
+            margin-bottom: 20px;
         }
-        .serving-info {
-            font-size: 16px;
-            margin-bottom: 10px;
+        #newnutritionheading {
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.1;
+            padding-bottom: 4px;
         }
-        .amount-per-serving {
-            font-weight: bold;
-            font-size: 16px;
-            margin: 10px 0;
-            border-bottom: 4px solid #000;
-            padding-bottom: 5px;
+        .hairlineseparator {
+            height: 1px;
+            background-color: #000;
+            margin: 2px 0;
         }
-        .calories-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            margin: 5px 0;
+        .thickseparator {
+            height: 10px;
+            background-color: #000;
+            margin: 2px 0;
+        }
+        .separator {
+            height: 1px;
+            background-color: #000;
+            margin: 2px 0;
+        }
+        .servingsize {
             padding: 5px 0;
-            border-bottom: 1px solid #000;
         }
-        .daily-value-header {
-            font-weight: bold;
+        .servingsizenew {
+            padding-top: 2px;
+            padding-bottom: 6px;
+        }
+        .servingsizenew-bold {
+            font-weight: 900;
             font-size: 16px;
+            padding-top: 3px;
+        }
+        .servings-per-container-div {
+            display: block;
+            padding-bottom: 6px;
+        }
+        .clearfix {
+            clear: both;
+        }
+        .nutrient {
+            font-weight: 700;
+            padding: 2px 0;
+        }
+        .new-calories {
+            font-size: 16px;
+            font-weight: 900;
+            padding: 6px 0;
+            position: relative;
+        }
+        .calories {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 32px;
+            font-weight: 900;
+        }
+        .newdailyvalue {
             text-align: right;
-            margin: 10px 0;
-            padding: 5px 0;
-            border-bottom: 4px solid #000;
+            font-weight: 700;
+            padding: 6px 0;
         }
-        .nutrient-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            margin: 5px 0;
-            padding: 5px 0;
-            border-bottom: 1px solid #000;
+        .new-vertical-row {
+            position: relative;
+            padding: 2px 0;
         }
-        .nutrient-name {
-            font-weight: bold;
+        .pull-left {
+            float: left;
+            width: 75%;
         }
-        .sub-nutrient {
+        .pull-right {
+            float: right;
+            width: 25%;
+            text-align: right;
+        }
+        .nutrientsubgroup {
             padding-left: 20px;
+            font-weight: 400;
         }
-        .footnote {
+        .nutrientsubsubgroup {
+            padding-left: 40px;
+            font-weight: 400;
+        }
+        .nutrientcontent {
+            float: right;
+            padding-right: 10px;
+        }
+        .subsubhairlineseparator {
+            height: 1px;
+            background-color: #000;
+            margin: 2px 0;
+            opacity: 0.5;
+        }
+        .label-footnote-section {
+            padding-top: 10px;
+        }
+        .footnote-separator {
+            height: 1px;
+            background-color: #000;
+            margin: 5px 0;
+        }
+        .asterisksection-new-vertical {
+            position: relative;
+            padding: 5px 0;
             font-size: 12px;
-            margin-top: 15px;
         }
-        .allergens {
-            font-size: 16px;
-            margin-top: 15px;
+        .asterisk {
+            position: absolute;
+            left: 0;
+            top: 5px;
+        }
+        .asterisk_text {
+            margin-left: 10px;
+            font-size: 10px;
+        }
+        #ingredientsandallergens {
+            margin-top: 20px;
+        }
+        #recipe-show-ingredient-list {
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            text-align: justify;
+        }
+        #allergen-list {
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
             font-weight: bold;
         }
-        .facility-allergens {
-            font-size: 14px;
-            margin-top: 10px;
+        #facility-allergen-list {
+            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
         }
-        .business-info {
-            font-size: 14px;
+        #manufacture-address {
             margin-top: 20px;
-            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
         }
         .timestamp {
             font-size: 10px;
             color: #999;
             text-align: right;
             margin-top: 20px;
+        }
+        /* Added styles for vitamins section */
+        #newverticalvitaminsection {
+            margin-top: 10px;
+        }
+        /* Added styles for added sugars */
+        .added-sugar-grams {
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -501,99 +629,283 @@ def create_html_template(template_path: Path) -> None:
         {% endif %}
         
         {% if not label_data.label_sections.hide_nutrition_facts|default(false) %}
-        <div class="nutrition-header">Nutrition Facts</div>
+        <div id="newnutritionfactstable">
+            <div id="newnutritionheading">
+                Nutrition Facts
+            </div>
+            <div class="hairlineseparator"></div>
+            <div class="servingsize servingsizenew">
+                <span class="servings-per-container-div">
+                    <span class="servings-per-container">
+                        {{ label_data.label_style.servings_per_package|default('1') }}
+                    </span>
+                    servings per container
+                </span>
+                <div class="servingsizenew-bold">
+                    <div style="float:left;">Serving size</div>
+                    <div style="float:right;">
+                        {{ label_data.label_style.serving_size_en|default('1 serving') }}
+                        {% if label_data.label_style.serving_size_weight|default('') %}
+                        ({{ label_data.label_style.serving_size_weight }})
+                        {% endif %}
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            <div class="thickseparator"></div>
+            <div class="nutrient">Amount Per Serving</div>
+            <div class="nutrient new-calories">
+                Calories
+                <div class="calories">{{ label_data.nutrition_adjustments.calories }}</div>
+            </div>
+            <div class="separator"></div>
+            <div class="newdailyvalue">
+                % Daily Value*
+            </div>
+            <div class="clearfix"></div>
+            
+            <!-- Total Fat -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrient">
+                        <span>Total Fat</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.fat }}g</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.fat }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Saturated Fat -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrientsubgroup">
+                        <span>Saturated Fat</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.saturated_fat }}g</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.saturated_fat }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Trans Fat -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrientsubgroup">
+                        <span><i>Trans</i> Fat</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.trans_fat }}g</span>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Cholesterol -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrient">
+                        <span>Cholesterol</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.cholesterol }}mg</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.cholesterol }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Sodium -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrient">
+                        <span>Sodium</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.sodium }}mg</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.sodium }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Total Carbohydrate -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrient">
+                        <span>Total Carbohydrate</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.carbohydrates }}g</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.carbohydrates }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Dietary Fiber -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrientsubgroup">
+                        <span>Dietary Fiber</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.dietary_fiber }}g</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ daily_values.dietary_fiber }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Total Sugars -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrientsubgroup">
+                        <span>Total Sugars</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.sugars }}g</span>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Added Sugars (if available) -->
+            {% if label_data.nutrition_adjustments.added_sugars|default(0) > 0 %}
+            <div class="new-vertical-row">
+                <div class="subsubhairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrientsubsubgroup added-sugar-grams">
+                        <span>Includes</span>
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.added_sugars }}g</span>
+                        <span>Added Sugars</span>
+                    </div>
+                </div>
+                <div class="pull-right">
+                    <div class="nutrient">%</div>
+                    <div class="nutrient">{{ (label_data.nutrition_adjustments.added_sugars * 100 / 50)|int }}</div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            {% endif %}
+            
+            <!-- Protein -->
+            <div class="new-vertical-row">
+                <div class="hairlineseparator"></div>
+                <div class="pull-left">
+                    <div class="nutrient">
+                        Protein
+                        <span class="nutrientcontent">{{ label_data.nutrition_adjustments.protein }}g</span>
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+            
+            <!-- Vitamins and Minerals Section -->
+            <div id="newverticalvitaminsection">
+                <div class="thickseparator"></div>
+                {% if label_data.nutrition_adjustments.vitamin_d|default(0) > 0 %}
+                <div class="new-vertical-row">
+                    <div class="pull-left">
+                        <div class="nutrientcontent">Vitamin D {{ label_data.nutrition_adjustments.vitamin_d }}mcg</div>
+                    </div>
+                    <div class="pull-right">
+                        <div class="nutrientcontent">{{ (label_data.nutrition_adjustments.vitamin_d * 100 / 20)|int }}%</div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="hairlineseparator"></div>
+                {% endif %}
+                
+                {% if label_data.nutrition_adjustments.calcium|default(0) > 0 %}
+                <div class="new-vertical-row">
+                    <div class="pull-left">
+                        <div class="nutrientcontent">Calcium {{ label_data.nutrition_adjustments.calcium }}mg</div>
+                    </div>
+                    <div class="pull-right">
+                        <div class="nutrientcontent">{{ (label_data.nutrition_adjustments.calcium * 100 / 1300)|int }}%</div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="hairlineseparator"></div>
+                {% endif %}
+                
+                {% if label_data.nutrition_adjustments.iron|default(0) > 0 %}
+                <div class="new-vertical-row">
+                    <div class="pull-left">
+                        <div class="nutrientcontent">Iron {{ label_data.nutrition_adjustments.iron }}mg</div>
+                    </div>
+                    <div class="pull-right">
+                        <div class="nutrientcontent">{{ (label_data.nutrition_adjustments.iron * 100 / 18)|int }}%</div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="hairlineseparator"></div>
+                {% endif %}
+                
+                {% if label_data.nutrition_adjustments.potassium|default(0) > 0 %}
+                <div class="new-vertical-row">
+                    <div class="pull-left">
+                        <div class="nutrientcontent">Potassium {{ label_data.nutrition_adjustments.potassium }}mg</div>
+                    </div>
+                    <div class="pull-right">
+                        <div class="nutrientcontent">{{ (label_data.nutrition_adjustments.potassium * 100 / 4700)|int }}%</div>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Footnote Section -->
+            <div class="label-footnote-section">
+                <div class="footnote-separator"></div>
+                <div class="asterisksection-new-vertical">
+                    <div class="asterisk">*</div>
+                    <div class="asterisk_text">The % Daily Value (DV) tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.</div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         
-        {% if label_data.label_style.serving_size_en|default('') %}
-        <div class="serving-info">
-            <div>Serving Size: {{ label_data.label_style.serving_size_en }}</div>
-            {% if label_data.label_style.servings_per_package|default('') %}
-            <div>Servings Per Container: {{ label_data.label_style.servings_per_package }}</div>
+        <!-- Ingredients and Allergens Section -->
+        <div id="ingredientsandallergens">
+            {% if label_data.ingredients|default('') %}
+            <div id="recipe-show-ingredient-list">
+                Ingredients: {{ label_data.ingredients }}
+            </div>
+            {% endif %}
+            
+            {% if not label_data.label_sections.hide_allergens|default(false) and label_data.allergens %}
+            <div id="allergen-list">
+                Contains: {{ label_data.allergens|join(', ') }}
+            </div>
+            {% endif %}
+            
+            {% if not label_data.label_sections.hide_facility_allergens|default(false) and label_data.facility_allergens %}
+            <div id="facility-allergen-list">
+                Manufactured in a facility that also processes: {{ label_data.facility_allergens|join(', ') }}
+            </div>
             {% endif %}
         </div>
-        {% endif %}
         
-        <div class="amount-per-serving">Amount Per Serving</div>
-        
-        <div class="calories-row">
-            <div class="nutrient-name">Calories</div>
-            <div>{{ label_data.nutrition_adjustments.calories }}</div>
-        </div>
-        
-        <div class="daily-value-header">% Daily Value*</div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name">Total Fat</div>
-            <div>{{ label_data.nutrition_adjustments.fat }}g</div>
-            <div>{{ daily_values.fat }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name sub-nutrient">Saturated Fat</div>
-            <div>{{ label_data.nutrition_adjustments.saturated_fat }}g</div>
-            <div>{{ daily_values.saturated_fat }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name sub-nutrient">Trans Fat</div>
-            <div>{{ label_data.nutrition_adjustments.trans_fat }}g</div>
-            <div></div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name">Cholesterol</div>
-            <div>{{ label_data.nutrition_adjustments.cholesterol }}mg</div>
-            <div>{{ daily_values.cholesterol }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name">Sodium</div>
-            <div>{{ label_data.nutrition_adjustments.sodium }}mg</div>
-            <div>{{ daily_values.sodium }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name">Total Carbohydrate</div>
-            <div>{{ label_data.nutrition_adjustments.carbohydrates }}g</div>
-            <div>{{ daily_values.carbohydrates }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name sub-nutrient">Dietary Fiber</div>
-            <div>{{ label_data.nutrition_adjustments.dietary_fiber }}g</div>
-            <div>{{ daily_values.dietary_fiber }}%</div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name sub-nutrient">Total Sugars</div>
-            <div>{{ label_data.nutrition_adjustments.sugars }}g</div>
-            <div></div>
-        </div>
-        
-        <div class="nutrient-row">
-            <div class="nutrient-name">Protein</div>
-            <div>{{ label_data.nutrition_adjustments.protein }}g</div>
-            <div></div>
-        </div>
-        
-        <div class="footnote">
-            * The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.
-        </div>
-        {% endif %}
-        
-        {% if not label_data.label_sections.hide_allergens|default(false) and label_data.allergens %}
-        <div class="allergens">
-            Contains: {{ label_data.allergens|join(', ') }}
-        </div>
-        {% endif %}
-        
-        {% if not label_data.label_sections.hide_facility_allergens|default(false) and label_data.facility_allergens %}
-        <div class="facility-allergens">
-            Manufactured in a facility that also processes: {{ label_data.facility_allergens|join(', ') }}
-        </div>
-        {% endif %}
-        
+        <!-- Business Information Section -->
         {% if not label_data.label_sections.hide_business_info|default(false) and label_data.business_info %}
-        <div class="business-info">
+        <div id="manufacture-address">
             <div>{{ label_data.business_info.business_name }}</div>
             {% if label_data.business_info.address %}
             <div>{{ label_data.business_info.address }}</div>
