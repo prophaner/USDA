@@ -114,6 +114,28 @@ async def download_png(label_id: str):
     )
 
 
+@router.get("/{label_id}", response_class=HTMLResponse, summary="View label")
+async def view_label(label_id: str):
+    """
+    View the generated label.
+    
+    Args:
+        label_id: The unique identifier of the label
+        
+    Returns:
+        The HTML content of the label
+    """
+    html_path = TEMP_DIR / f"{label_id}.html"
+    
+    if not html_path.exists():
+        raise HTTPException(status_code=404, detail="Label not found")
+    
+    with open(html_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    
+    return HTMLResponse(content=html_content)
+
+
 @router.get("/{label_id}/embed", response_class=HTMLResponse, summary="Embed label as HTML")
 async def embed_label(label_id: str):
     """

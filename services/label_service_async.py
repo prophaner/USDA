@@ -132,7 +132,7 @@ async def generate_label(label_input: LabelInput) -> LabelOutput:
     )
     
     # Convert file paths to URLs
-    base_url = "/api/labels"
+    base_url = "/label"
     label_url = f"{base_url}/{label_id}"
     pdf_download_url = f"{base_url}/{label_id}/download/pdf"
     png_download_url = f"{base_url}/{label_id}/download/png"
