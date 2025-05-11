@@ -14,7 +14,10 @@ from models import LabelInput, LabelOutput, LabelValidationError
 from services.label_service import generate_label, check_label_requirements
 
 # Base directory for temporary files
-TEMP_DIR = Path("C:/Users/LuisRamos/PycharmProjects/CuradoUSDA/temp")
+TEMP_DIR = Path(__file__).parent.parent / "temp"
+
+# Ensure temp directory exists
+TEMP_DIR.mkdir(exist_ok=True)
 
 router = APIRouter(
     prefix="/label",

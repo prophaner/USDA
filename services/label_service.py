@@ -95,64 +95,79 @@ def generate_label(label_input: LabelInput) -> LabelOutput:
         
     Raises:
         ValueError: If the label input is invalid
+        RuntimeError: If there's an error generating the label files
     """
     # Validate the input
     is_valid, missing_elements = validate_label_input(label_input)
     if not is_valid:
         raise ValueError(f"Invalid label input: missing {', '.join(missing_elements)}")
     
-    # Generate a unique ID for the label
-    label_id = str(uuid.uuid4())
-    
-    # Create a timestamp for the label
-    timestamp = datetime.now().isoformat()
-    
-    # Prepare the label data
-    label_data = {
-        "id": label_id,
-        "timestamp": timestamp,
-        "recipe_title": label_input.recipe_title,
-        "recipe_data": label_input.recipe_data.model_dump(),
-        "label_sections": label_input.label_sections.model_dump() if label_input.label_sections else {},
-        "label_style": label_input.label_style.model_dump() if label_input.label_style else {},
-        "optional_nutrients": label_input.optional_nutrients.model_dump() if label_input.optional_nutrients else {},
-        "optional_vitamins": label_input.optional_vitamins.model_dump() if label_input.optional_vitamins else {},
-        "nutrition_adjustments": label_input.nutrition_adjustments.model_dump() if label_input.nutrition_adjustments else {},
-        "label_type": label_input.label_type,
-        "business_info": label_input.business_info.model_dump() if label_input.business_info else {},
-        "allergens": label_input.allergens if label_input.allergens else [],
-        "facility_allergens": label_input.facility_allergens if label_input.facility_allergens else []
-    }
-    
-    # Generate the label files
-    pdf_path, png_path, html_path = generate_label_files(label_data)
-    
-    # Convert file paths to URLs
-    base_url = "/api/labels"
-    label_url = f"{base_url}/{label_id}"
-    pdf_download_url = f"{base_url}/{label_id}/download/pdf"
-    png_download_url = f"{base_url}/{label_id}/download/png"
-    
-    # Generate an HTML embed code for the label
-    embedded_html = f"""
-    <iframe 
-        src="{label_url}/embed" 
-        width="100%" 
-        height="600" 
-        frameborder="0" 
-        scrolling="no" 
-        allowfullscreen>
-    </iframe>
-    """
-    
-    return LabelOutput(
-        label_url=label_url,
-        pdf_download_url=pdf_download_url,
-        png_download_url=png_download_url,
-        embedded_html=embedded_html,
-        label_data=label_data,
-        missing_elements=None
-    )
+    try:
+        # Generate a unique ID for the label
+        label_id = str(uuid.uuid4())
+        
+        # Create a timestamp for the label
+        timestamp = datetime.now().isoformat()
+        
+        # Prepare the label data
+        label_data = {
+            "id": label_id,
+            "timestamp": timestamp,
+            "recipe_title": label_input.recipe_title,
+            "recipe_data": label_input.recipe_data.model_dump(),
+            "label_sections": label_input.label_sections.model_dump() if label_input.label_sections else {},
+            "label_style": label_input.label_style.model_dump() if label_input.label_style else {},
+            "optional_nutrients": label_input.optional_nutrients.model_dump() if label_input.optional_nutrients else {},
+            "optional_vitamins": label_input.optional_vitamins.model_dump() if label_input.optional_vitamins else {},
+            "nutrition_adjustments": label_input.nutrition_adjustments.model_dump() if label_input.nutrition_adjustments else {},
+            "label_type": label_input.label_type,
+            "business_info": label_input.business_info.model_dump() if label_input.business_info else {},
+            "allergens": label_input.allergens if label_input.allergens else [],
+            "facility_allergens": label_input.facility_allergens if label_input.facility_allergens else []
+        }
+        
+        # Generate the label files
+        try:
+            pdf_path, png_path, html_path = generate_label_files(label_data)
+        except Exception as e:
+            raise RuntimeError(f"Error generating label files: {str(e)}")
+        
+        # Verify files were created
+        if not os.path.exists(pdf_path) or not os.path.exists(png_path) or not os.path.exists(html_path):
+            raise RuntimeError("One or more label files were not created successfully")
+        
+        # Convert file paths to URLs
+        base_url = "/api/labels"
+        label_url = f"{base_url}/{label_id}"
+        pdf_download_url = f"{base_url}/{label_id}/download/pdf"
+        png_download_url = f"{base_url}/{label_id}/download/png"
+        
+        # Generate an HTML embed code for the label
+        embedded_html = f"""
+        <iframe 
+            src="{label_url}/embed" 
+            width="100%" 
+            height="600" 
+            frameborder="0" 
+            scrolling="no" 
+            allowfullscreen>
+        </iframe>
+        """
+        
+        return LabelOutput(
+            label_url=label_url,
+            pdf_download_url=pdf_download_url,
+            png_download_url=png_download_url,
+            embedded_html=embedded_html,
+            label_data=label_data,
+            missing_elements=None
+        )
+    except Exception as e:
+        # Catch any unexpected errors
+        if isinstance(e, ValueError) or isinstance(e, RuntimeError):
+            raise
+        else:
+            raise RuntimeError(f"Unexpected error generating label: {str(e)}")
 
 
 def check_label_requirements(label_input: LabelInput) -> Tuple[bool, Optional[LabelValidationError]]:

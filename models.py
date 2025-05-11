@@ -10,7 +10,7 @@ Pydantic models for USDA nutrition API:
 """
 
 from typing import Dict, List, Optional, Union, Literal
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from helpers import convert_units
 
 
@@ -21,8 +21,10 @@ class Suggestion(BaseModel):
     category: Optional[str] = Field(None, description="Food category")
     data_type: str = Field(..., description="USDA data type (e.g. Branded, Survey)")
 
-    @validator("description", pre=True, always=True)
+    @field_validator("description", mode="before")
+    @classmethod
     def titlecase(cls, v: str) -> str:
+        """Convert description to title case."""
         return v.title()
 
 
@@ -33,8 +35,10 @@ class Portion(BaseModel):
     grams: float = Field(..., description="Equivalent weight in grams")
     description: Optional[str] = Field(None, description="Optional display label")
 
-    @validator("unit", pre=True)
+    @field_validator("unit", mode="before")
+    @classmethod
     def normalize_unit(cls, v: str) -> str:
+        """Normalize unit to lowercase and strip whitespace."""
         return v.strip().lower()
 
 
@@ -205,8 +209,10 @@ class IngredientInput(BaseModel):
     amount: Optional[float] = Field(None, description="Desired serving amount")
     unit: Optional[str] = Field(None, description="Desired serving unit")
 
-    @validator("unit", pre=True, always=True)
+    @field_validator("unit", mode="before")
+    @classmethod
     def unit_lower(cls, v: Optional[str]) -> Optional[str]:
+        """Convert unit to lowercase and strip whitespace if it exists."""
         return v.strip().lower() if v else v
 
 

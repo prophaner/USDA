@@ -27,13 +27,14 @@ from PIL import Image, ImageDraw, ImageFont
 import jinja2
 
 # Base directory for temporary files
-TEMP_DIR = Path("C:/Users/LuisRamos/PycharmProjects/CuradoUSDA/temp")
+# Use a relative path from the project root for better portability
+TEMP_DIR = Path(__file__).parent.parent / "temp"
 
 # Ensure temp directory exists
 TEMP_DIR.mkdir(exist_ok=True)
 
 # Set up Jinja2 environment
-template_loader = jinja2.FileSystemLoader(searchpath="C:/Users/LuisRamos/PycharmProjects/CuradoUSDA/templates")
+template_loader = jinja2.FileSystemLoader(searchpath=Path(__file__).parent.parent / "templates")
 template_env = jinja2.Environment(loader=template_loader)
 
 
@@ -350,7 +351,7 @@ def generate_html(label_data: Dict, label_id: str) -> str:
     html_path = TEMP_DIR / f"{label_id}.html"
     
     # Create templates directory if it doesn't exist
-    templates_dir = Path("C:/Users/LuisRamos/PycharmProjects/CuradoUSDA/templates")
+    templates_dir = Path(__file__).parent.parent / "templates"
     templates_dir.mkdir(exist_ok=True)
     
     # Check if the template exists, if not create it

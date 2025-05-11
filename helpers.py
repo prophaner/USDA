@@ -91,6 +91,16 @@ def _search_usda(query: str, limit: int = 10) -> List[Dict[str, Any]]:
     """
     Query USDA FoodData Central 'foods/search' endpoint.
     Returns up to 'limit' food match dicts.
+    
+    Args:
+        query: The search query string
+        limit: Maximum number of results to return (default: 10)
+        
+    Returns:
+        List of food match dictionaries
+        
+    Raises:
+        ValueError: If the API request fails for any reason
     """
     try:
         resp = requests.get(
@@ -111,22 +121,53 @@ def _search_usda(query: str, limit: int = 10) -> List[Dict[str, Any]]:
             raise ValueError("USDA API rate limit exceeded")
         else:
             raise ValueError(f"USDA API error: {str(e)}")
-    except Exception as e:
+    except requests.exceptions.ConnectionError:
+        raise ValueError("Connection error: Unable to connect to USDA API")
+    except requests.exceptions.RequestException as e:
         raise ValueError(f"Error querying USDA API: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error querying USDA API: {str(e)}")
 
 @lru_cache(maxsize=1024)
 def _get_food(fdc_id: int) -> Dict[str, Any]:
     """
     Fetch USDA FoodData Central '/food/{fdcId}' endpoint.
     Caches results to minimize API calls.
+    
+    Args:
+        fdc_id: Food Data Central ID
+        
+    Returns:
+        Food data dictionary
+        
+    Raises:
+        ValueError: If the API request fails for any reason
     """
-    resp = requests.get(
-        f"{BASE_URL}/food/{fdc_id}",
-        params={"api_key": API_KEY},
-        timeout=5,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    try:
+        resp = requests.get(
+            f"{BASE_URL}/food/{fdc_id}",
+            params={"api_key": API_KEY},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.Timeout:
+        raise ValueError(f"USDA API request timed out for food ID: {fdc_id}")
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            raise ValueError("Invalid USDA API key")
+        elif e.response.status_code == 404:
+            raise ValueError(f"Food with ID {fdc_id} not found")
+        elif e.response.status_code == 429:
+            raise ValueError("USDA API rate limit exceeded")
+        else:
+            raise ValueError(f"USDA API error: {str(e)}")
+    except requests.exceptions.ConnectionError:
+        raise ValueError("Connection error: Unable to connect to USDA API")
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Error querying USDA API: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error querying USDA API: {str(e)}")
 
 
 def normalize_unit(unit: str) -> str:
@@ -152,13 +193,33 @@ def convert_units(amount: float, from_unit: str, to_unit: str) -> float:
 
     Raises ValueError if converting between other mass and volume units.
 
+    Args:
+        amount: The amount to convert
+        from_unit: The source unit
+        to_unit: The target unit
+        
+    Returns:
+        The converted amount
+        
+    Raises:
+        ValueError: If conversion between the specified units is not supported
+        
     Examples:
       convert_units(100, "g", "oz")    → ~3.5274
       convert_units(1, "cup", "tbsp")  → 16.0
       convert_units(0.5, "gallon", "cup") → 8.0
     """
+    # Validate inputs
+    if amount < 0:
+        raise ValueError("Amount must be non-negative")
+        
+    # Normalize units
     f = normalize_unit(from_unit)
     t = normalize_unit(to_unit)
+    
+    # If units are the same, no conversion needed
+    if f == t:
+        return amount
 
     # Mass → Mass
     if f in MASS_UNITS and t in MASS_UNITS:
@@ -170,30 +231,25 @@ def convert_units(amount: float, from_unit: str, to_unit: str) -> float:
         ml = amount * VOLUME_TO_ML[f]
         return round(ml / VOLUME_TO_ML[t], 4)
         
-    # Special case for tests: Volume → Mass (approximate conversions)
-    # These are approximations based on water density
-    if f == "cup" and t == "g":
-        return amount * 240.0
-    elif f == "tbsp" and t == "g":
-        return amount * 15.0
-    elif f == "tsp" and t == "g":
-        return amount * 5.0
-    elif f == "fl oz" and t == "g":
-        return amount * 30.0
-    elif f == "ml" and t == "g":
-        return amount * 1.0
+    # Volume → Mass (approximate conversions based on water density)
+    volume_to_mass = {
+        "cup": 240.0,
+        "tbsp": 15.0,
+        "tsp": 5.0,
+        "fl oz": 30.0,
+        "ml": 1.0,
+        "l": 1000.0,
+        "pint": 473.0,
+        "quart": 946.0,
+        "gallon": 3785.0
+    }
+    
+    if f in volume_to_mass and t == "g":
+        return amount * volume_to_mass[f]
         
-    # Special case for tests: Mass → Volume (approximate conversions)
-    if f == "g" and t == "cup":
-        return amount / 240.0
-    elif f == "g" and t == "tbsp":
-        return amount / 15.0
-    elif f == "g" and t == "tsp":
-        return amount / 5.0
-    elif f == "g" and t == "fl oz":
-        return amount / 30.0
-    elif f == "g" and t == "ml":
-        return amount
+    # Mass → Volume (approximate conversions)
+    if f == "g" and t in volume_to_mass:
+        return amount / volume_to_mass[t]
 
     # Unsupported cross-conversion
     raise ValueError(f"Cannot convert from '{from_unit}' to '{to_unit}'.")

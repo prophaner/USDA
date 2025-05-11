@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ label_data.recipe_title }} - Nutrition Facts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: {{ label_data.label_style.background_color|default('#FFFFFF') }};
+            color: {{ label_data.label_style.text_color|default('#000000') }};
+        }
+        .label-container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #000;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .recipe-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .nutrition-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 15px 0;
+            border-bottom: 8px solid #000;
+            padding-bottom: 5px;
+        }
+        .serving-info {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .amount-per-serving {
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px 0;
+            border-bottom: 4px solid #000;
+            padding-bottom: 5px;
+        }
+        .calories-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+        }
+        .daily-value-header {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: right;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 4px solid #000;
+        }
+        .nutrient-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #000;
+        }
+        .nutrient-name {
+            font-weight: bold;
+        }
+        .sub-nutrient {
+            padding-left: 20px;
+        }
+        .footnote {
+            font-size: 12px;
+            margin-top: 15px;
+        }
+        .allergens {
+            font-size: 16px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .facility-allergens {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .business-info {
+            font-size: 14px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .timestamp {
+            font-size: 10px;
+            color: #999;
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="label-container">
+        {% if not label_data.label_sections.hide_recipe_title|default(false) %}
+        <div class="recipe-title">{{ label_data.recipe_title }}</div>
+        {% endif %}
+        
+        {% if not label_data.label_sections.hide_nutrition_facts|default(false) %}
+        <div class="nutrition-header">Nutrition Facts</div>
+        
+        {% if label_data.label_style.serving_size_en|default('') %}
+        <div class="serving-info">
+            <div>Serving Size: {{ label_data.label_style.serving_size_en }}</div>
+            {% if label_data.label_style.servings_per_package|default('') %}
+            <div>Servings Per Container: {{ label_data.label_style.servings_per_package }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="amount-per-serving">Amount Per Serving</div>
+        
+        <div class="calories-row">
+            <div class="nutrient-name">Calories</div>
+            <div>{{ label_data.nutrition_adjustments.calories }}</div>
+        </div>
+        
+        <div class="daily-value-header">% Daily Value*</div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name">Total Fat</div>
+            <div>{{ label_data.nutrition_adjustments.fat }}g</div>
+            <div>{{ daily_values.fat }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name sub-nutrient">Saturated Fat</div>
+            <div>{{ label_data.nutrition_adjustments.saturated_fat }}g</div>
+            <div>{{ daily_values.saturated_fat }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name sub-nutrient">Trans Fat</div>
+            <div>{{ label_data.nutrition_adjustments.trans_fat }}g</div>
+            <div></div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name">Cholesterol</div>
+            <div>{{ label_data.nutrition_adjustments.cholesterol }}mg</div>
+            <div>{{ daily_values.cholesterol }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name">Sodium</div>
+            <div>{{ label_data.nutrition_adjustments.sodium }}mg</div>
+            <div>{{ daily_values.sodium }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name">Total Carbohydrate</div>
+            <div>{{ label_data.nutrition_adjustments.carbohydrates }}g</div>
+            <div>{{ daily_values.carbohydrates }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name sub-nutrient">Dietary Fiber</div>
+            <div>{{ label_data.nutrition_adjustments.dietary_fiber }}g</div>
+            <div>{{ daily_values.dietary_fiber }}%</div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name sub-nutrient">Total Sugars</div>
+            <div>{{ label_data.nutrition_adjustments.sugars }}g</div>
+            <div></div>
+        </div>
+        
+        <div class="nutrient-row">
+            <div class="nutrient-name">Protein</div>
+            <div>{{ label_data.nutrition_adjustments.protein }}g</div>
+            <div></div>
+        </div>
+        
+        <div class="footnote">
+            * The % Daily Value tells you how much a nutrient in a serving of food contributes to a daily diet. 2,000 calories a day is used for general nutrition advice.
+        </div>
+        {% endif %}
+        
+        {% if not label_data.label_sections.hide_allergens|default(false) and label_data.allergens %}
+        <div class="allergens">
+            Contains: {{ label_data.allergens|join(', ') }}
+        </div>
+        {% endif %}
+        
+        {% if not label_data.label_sections.hide_facility_allergens|default(false) and label_data.facility_allergens %}
+        <div class="facility-allergens">
+            Manufactured in a facility that also processes: {{ label_data.facility_allergens|join(', ') }}
+        </div>
+        {% endif %}
+        
+        {% if not label_data.label_sections.hide_business_info|default(false) and label_data.business_info %}
+        <div class="business-info">
+            <div>{{ label_data.business_info.business_name }}</div>
+            {% if label_data.business_info.address %}
+            <div>{{ label_data.business_info.address }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="timestamp">Generated: {{ timestamp }}</div>
+    </div>
+</body>
+</html>
