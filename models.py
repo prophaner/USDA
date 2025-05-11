@@ -352,6 +352,7 @@ class LabelInput(BaseModel):
     business_info: Optional[BusinessInfo] = Field(None, description="Business information")
     allergens: Optional[List[str]] = Field(None, description="List of allergens")
     facility_allergens: Optional[List[str]] = Field(None, description="List of facility allergens")
+    ingredients_list: Optional[str] = Field(None, description="Ingredients list text")
 
 
 class LabelOutput(BaseModel):

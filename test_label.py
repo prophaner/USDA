@@ -7,7 +7,7 @@ import webbrowser
 import os
 
 def main():
-    # Sample test data that matches the example in deleteme.txt
+    # Sample test data that matches the example in sample_html.txt
     test_data = {
         'id': 'test123',
         'recipe_title': 'Banana Oatmeal Cookies',

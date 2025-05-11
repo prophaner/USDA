@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Label Editor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            padding: 20px;
+        }
+        .editor-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+        }
+        .preview-section {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .nav-tabs {
+            margin-bottom: 0;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        #label-preview-container {
+            width: 100%;
+            height: 600px;
+            overflow: auto;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .export-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .export-buttons button {
+            flex: 1;
+        }
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="mb-4">Nutrition Label Editor</h1>
+        
+        <div class="editor-container">
+            <!-- Form Section -->
+            <div class="form-section">
+                <ul class="nav nav-tabs" id="editorTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">Basic Info</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="nutrition-tab" data-bs-toggle="tab" data-bs-target="#nutrition" type="button" role="tab" aria-controls="nutrition" aria-selected="false">Nutrition</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button" role="tab" aria-controls="ingredients" aria-selected="false">Ingredients</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="style-tab" data-bs-toggle="tab" data-bs-target="#style" type="button" role="tab" aria-controls="style" aria-selected="false">Style</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab" aria-controls="advanced" aria-selected="false">Advanced</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="editorTabsContent">
+                    <!-- Basic Info Tab -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                        <form id="basicInfoForm">
+                            <div class="form-group">
+                                <label for="recipe_title">Recipe Title</label>
+                                <input type="text" class="form-control" id="recipe_title" name="recipe_title" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="serving_size">Serving Size</label>
+                                <input type="text" class="form-control" id="serving_size" name="serving_size" placeholder="e.g., 1 cookie (25g)">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="servings_per_container">Servings Per Container</label>
+                                <input type="number" class="form-control" id="servings_per_container" name="servings_per_container" min="1" step="1">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="business_name">Business Name</label>
+                                <input type="text" class="form-control" id="business_name" name="business_name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="business_address">Business Address</label>
+                                <textarea class="form-control" id="business_address" name="business_address" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Nutrition Tab -->
+                    <div class="tab-pane fade" id="nutrition" role="tabpanel" aria-labelledby="nutrition-tab">
+                        <form id="nutritionForm">
+                            <div class="accordion" id="nutritionAccordion">
+                                <!-- Main Nutrients -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="mainNutrientsHeading">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#mainNutrientsCollapse" aria-expanded="true" aria-controls="mainNutrientsCollapse">
+                                            Main Nutrients
+                                        </button>
+                                    </h2>
+                                    <div id="mainNutrientsCollapse" class="accordion-collapse collapse show" aria-labelledby="mainNutrientsHeading">
+                                        <div class="accordion-body">
+                                            <div class="form-group">
+                                                <label for="calories">Calories</label>
+                                                <input type="number" class="form-control" id="calories" name="calories" min="0" step="1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="fat">Total Fat (g)</label>
+                                                <input type="number" class="form-control" id="fat" name="fat" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="saturated_fat">Saturated Fat (g)</label>
+                                                <input type="number" class="form-control" id="saturated_fat" name="saturated_fat" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="trans_fat">Trans Fat (g)</label>
+                                                <input type="number" class="form-control" id="trans_fat" name="trans_fat" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="cholesterol">Cholesterol (mg)</label>
+                                                <input type="number" class="form-control" id="cholesterol" name="cholesterol" min="0" step="1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="sodium">Sodium (mg)</label>
+                                                <input type="number" class="form-control" id="sodium" name="sodium" min="0" step="1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="carbohydrates">Total Carbohydrates (g)</label>
+                                                <input type="number" class="form-control" id="carbohydrates" name="carbohydrates" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="dietary_fiber">Dietary Fiber (g)</label>
+                                                <input type="number" class="form-control" id="dietary_fiber" name="dietary_fiber" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="sugars">Total Sugars (g)</label>
+                                                <input type="number" class="form-control" id="sugars" name="sugars" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="added_sugars">Added Sugars (g)</label>
+                                                <input type="number" class="form-control" id="added_sugars" name="added_sugars" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="protein">Protein (g)</label>
+                                                <input type="number" class="form-control" id="protein" name="protein" min="0" step="0.1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Vitamins and Minerals -->
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="vitaminsHeading">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vitaminsCollapse" aria-expanded="false" aria-controls="vitaminsCollapse">
+                                            Vitamins and Minerals
+                                        </button>
+                                    </h2>
+                                    <div id="vitaminsCollapse" class="accordion-collapse collapse" aria-labelledby="vitaminsHeading">
+                                        <div class="accordion-body">
+                                            <div class="form-group">
+                                                <label for="vitamin_d">Vitamin D (mcg)</label>
+                                                <input type="number" class="form-control" id="vitamin_d" name="vitamin_d" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="calcium">Calcium (mg)</label>
+                                                <input type="number" class="form-control" id="calcium" name="calcium" min="0" step="1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="iron">Iron (mg)</label>
+                                                <input type="number" class="form-control" id="iron" name="iron" min="0" step="0.1">
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label for="potassium">Potassium (mg)</label>
+                                                <input type="number" class="form-control" id="potassium" name="potassium" min="0" step="1">
+                                            </div>
+                                            
+                                            <div class="form-check form-switch mt-3">
+                                                <input class="form-check-input" type="checkbox" id="show_additional_vitamins">
+                                                <label class="form-check-label" for="show_additional_vitamins">Show Additional Vitamins</label>
+                                            </div>
+                                            
+                                            <div id="additional_vitamins" class="mt-3 hidden">
+                                                <div class="form-group">
+                                                    <label for="vitamin_a">Vitamin A (mcg)</label>
+                                                    <input type="number" class="form-control" id="vitamin_a" name="vitamin_a" min="0" step="0.1">
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="vitamin_c">Vitamin C (mg)</label>
+                                                    <input type="number" class="form-control" id="vitamin_c" name="vitamin_c" min="0" step="0.1">
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="vitamin_e">Vitamin E (mg)</label>
+                                                    <input type="number" class="form-control" id="vitamin_e" name="vitamin_e" min="0" step="0.1">
+                                                </div>
+                                                
+                                                <div class="form-group">
+                                                    <label for="vitamin_k">Vitamin K (mcg)</label>
+                                                    <input type="number" class="form-control" id="vitamin_k" name="vitamin_k" min="0" step="0.1">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Ingredients Tab -->
+                    <div class="tab-pane fade" id="ingredients" role="tabpanel" aria-labelledby="ingredients-tab">
+                        <form id="ingredientsForm">
+                            <div class="form-group">
+                                <label for="ingredients_list">Ingredients List</label>
+                                <textarea class="form-control" id="ingredients_list" name="ingredients_list" rows="4" placeholder="List ingredients separated by commas"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="allergens">Allergens</label>
+                                <input type="text" class="form-control" id="allergens" name="allergens" placeholder="e.g., Milk, Eggs, Wheat">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="facility_allergens">Facility Allergens (Optional)</label>
+                                <input type="text" class="form-control" id="facility_allergens" name="facility_allergens" placeholder="e.g., Peanuts, Tree Nuts">
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Style Tab -->
+                    <div class="tab-pane fade" id="style" role="tabpanel" aria-labelledby="style-tab">
+                        <form id="styleForm">
+                            <div class="form-group">
+                                <label for="text_color">Text Color</label>
+                                <input type="color" class="form-control" id="text_color" name="text_color" value="#000000">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="background_color">Background Color</label>
+                                <input type="color" class="form-control" id="background_color" name="background_color" value="#FFFFFF">
+                            </div>
+                            
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="transparent_background" name="transparent_background">
+                                <label class="form-check-label" for="transparent_background">Transparent Background</label>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="label_width">Label Width (px)</label>
+                                <input type="number" class="form-control" id="label_width" name="label_width" min="200" max="600" value="300">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="text_alignment">Text Alignment</label>
+                                <select class="form-select" id="text_alignment" name="text_alignment">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="text_case">Text Case</label>
+                                <select class="form-select" id="text_case" name="text_case">
+                                    <option value="default">Default</option>
+                                    <option value="lowercase">Lowercase</option>
+                                    <option value="titlecase">Title Case</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Advanced Tab -->
+                    <div class="tab-pane fade" id="advanced" role="tabpanel" aria-labelledby="advanced-tab">
+                        <form id="advancedForm">
+                            <div class="form-group">
+                                <label>Label Sections Visibility</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hide_recipe_title" name="hide_recipe_title">
+                                    <label class="form-check-label" for="hide_recipe_title">Hide Recipe Title</label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hide_nutrition_facts" name="hide_nutrition_facts">
+                                    <label class="form-check-label" for="hide_nutrition_facts">Hide Nutrition Facts</label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hide_ingredient_list" name="hide_ingredient_list">
+                                    <label class="form-check-label" for="hide_ingredient_list">Hide Ingredient List</label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hide_allergens" name="hide_allergens">
+                                    <label class="form-check-label" for="hide_allergens">Hide Allergens</label>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="hide_business_info" name="hide_business_info">
+                                    <label class="form-check-label" for="hide_business_info">Hide Business Info</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mt-3">
+                                <label for="label_type">Label Type</label>
+                                <select class="form-select" id="label_type" name="label_type">
+                                    <option value="USDA (Old FDA) Vertical">USDA (Old FDA) Vertical</option>
+                                    <option value="FDA 2016 Vertical">FDA 2016 Vertical</option>
+                                    <option value="Canada 2016 Vertical">Canada 2016 Vertical</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button id="update-preview-btn" class="btn btn-primary">Update Preview</button>
+                </div>
+            </div>
+            
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <h3>Label Preview</h3>
+                <div id="label-preview-container">
+                    <div id="label-preview">
+                        <p class="text-center text-muted">Preview will appear here. Click "Update Preview" to generate.</p>
+                    </div>
+                </div>
+                
+                <div class="export-buttons">
+                    <button id="export-pdf-btn" class="btn btn-success">Export as PDF</button>
+                    <button id="export-png-btn" class="btn btn-info">Export as PNG</button>
+                    <button id="export-html-btn" class="btn btn-secondary">Get Embed Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading hidden">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    
+    <!-- Embed Code Modal -->
+    <div class="modal fade" id="embedModal" tabindex="-1" aria-labelledby="embedModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="embedModalLabel">Embed Code</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Copy the code below to embed this label on your website:</p>
+                    <textarea id="embed-code" class="form-control" rows="5" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="copy-embed-btn">Copy Code</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const updatePreviewBtn = document.getElementById('update-preview-btn');
+            const exportPdfBtn = document.getElementById('export-pdf-btn');
+            const exportPngBtn = document.getElementById('export-png-btn');
+            const exportHtmlBtn = document.getElementById('export-html-btn');
+            const labelPreview = document.getElementById('label-preview');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const showAdditionalVitamins = document.getElementById('show_additional_vitamins');
+            const additionalVitamins = document.getElementById('additional_vitamins');
+            const embedCodeTextarea = document.getElementById('embed-code');
+            const copyEmbedBtn = document.getElementById('copy-embed-btn');
+            
+            // Current label ID
+            let currentLabelId = null;
+            
+            // Toggle additional vitamins visibility
+            showAdditionalVitamins.addEventListener('change', function() {
+                if (this.checked) {
+                    additionalVitamins.classList.remove('hidden');
+                } else {
+                    additionalVitamins.classList.add('hidden');
+                }
+            });
+            
+            // Update preview button click handler
+            updatePreviewBtn.addEventListener('click', function() {
+                generateLabel();
+            });
+            
+            // Export buttons click handlers
+            exportPdfBtn.addEventListener('click', function() {
+                if (currentLabelId) {
+                    window.open(`/label/${currentLabelId}/download/pdf`, '_blank');
+                } else {
+                    alert('Please generate a label preview first.');
+                }
+            });
+            
+            exportPngBtn.addEventListener('click', function() {
+                if (currentLabelId) {
+                    window.open(`/label/${currentLabelId}/download/png`, '_blank');
+                } else {
+                    alert('Please generate a label preview first.');
+                }
+            });
+            
+            exportHtmlBtn.addEventListener('click', function() {
+                if (currentLabelId) {
+                    const embedCode = `<iframe src="/label/${currentLabelId}/embed" width="100%" height="600" frameborder="0" scrolling="no" allowfullscreen></iframe>`;
+                    embedCodeTextarea.value = embedCode;
+                    new bootstrap.Modal(document.getElementById('embedModal')).show();
+                } else {
+                    alert('Please generate a label preview first.');
+                }
+            });
+            
+            // Copy embed code button
+            copyEmbedBtn.addEventListener('click', function() {
+                embedCodeTextarea.select();
+                document.execCommand('copy');
+                this.textContent = 'Copied!';
+                setTimeout(() => {
+                    this.textContent = 'Copy Code';
+                }, 2000);
+            });
+            
+            // Generate label function
+            function generateLabel() {
+                // Show loading overlay
+                loadingOverlay.classList.remove('hidden');
+                
+                // Collect form data
+                const labelData = collectFormData();
+                
+                // Log the data being sent (for debugging)
+                console.log('Sending data to API:', labelData);
+                
+                // Send API request
+                fetch('/label/', {  // Note the trailing slash
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(labelData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            console.error('API Error Response:', err);
+                            throw new Error(JSON.stringify(err));
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Store the label ID
+                    currentLabelId = data.label_url.split('/').pop();
+                    
+                    // Load the preview
+                    fetch(`/label/${currentLabelId}/embed`)
+                        .then(response => response.text())
+                        .then(html => {
+                            labelPreview.innerHTML = html;
+                            loadingOverlay.classList.add('hidden');
+                        })
+                        .catch(error => {
+                            console.error('Error loading preview:', error);
+                            labelPreview.innerHTML = '<p class="text-danger">Error loading preview. Please try again.</p>';
+                            loadingOverlay.classList.add('hidden');
+                        });
+                })
+                .catch(error => {
+                    console.error('Error generating label:', error);
+                    try {
+                        // Log the raw error for debugging
+                        console.log('Raw error message:', error.message);
+                        
+                        const errorData = JSON.parse(error.message);
+                        let errorMessage = 'Error generating label: ';
+                        
+                        if (errorData.detail && typeof errorData.detail === 'object') {
+                            if (errorData.detail.message) {
+                                errorMessage += errorData.detail.message;
+                            }
+                            
+                            if (errorData.detail.missing_elements && errorData.detail.missing_elements.length > 0) {
+                                errorMessage += '<br>Missing required fields: ' + errorData.detail.missing_elements.join(', ');
+                            }
+                        } else if (errorData.detail) {
+                            errorMessage += errorData.detail;
+                        } else {
+                            errorMessage += JSON.stringify(errorData);
+                        }
+                        
+                        labelPreview.innerHTML = `<p class="text-danger">${errorMessage}</p>`;
+                    } catch (e) {
+                        console.error('Error parsing error message:', e);
+                        labelPreview.innerHTML = `<p class="text-danger">Error generating label: ${error.message}</p>`;
+                    }
+                    
+                    loadingOverlay.classList.add('hidden');
+                });
+            }
+            
+            // Collect form data from all tabs
+            function collectFormData() {
+                // Basic info
+                const recipeTitle = document.getElementById('recipe_title').value;
+                const servingSize = document.getElementById('serving_size').value;
+                const servingsPerContainer = document.getElementById('servings_per_container').value;
+                const businessName = document.getElementById('business_name').value;
+                const businessAddress = document.getElementById('business_address').value;
+                
+                // Nutrition values
+                const calories = parseFloat(document.getElementById('calories').value) || 0;
+                const fat = parseFloat(document.getElementById('fat').value) || 0;
+                const saturatedFat = parseFloat(document.getElementById('saturated_fat').value) || 0;
+                const transFat = parseFloat(document.getElementById('trans_fat').value) || 0;
+                const cholesterol = parseFloat(document.getElementById('cholesterol').value) || 0;
+                const sodium = parseFloat(document.getElementById('sodium').value) || 0;
+                const carbohydrates = parseFloat(document.getElementById('carbohydrates').value) || 0;
+                const dietaryFiber = parseFloat(document.getElementById('dietary_fiber').value) || 0;
+                const sugars = parseFloat(document.getElementById('sugars').value) || 0;
+                const addedSugars = parseFloat(document.getElementById('added_sugars').value) || 0;
+                const protein = parseFloat(document.getElementById('protein').value) || 0;
+                
+                // Vitamins and minerals
+                const vitaminD = parseFloat(document.getElementById('vitamin_d').value) || 0;
+                const calcium = parseFloat(document.getElementById('calcium').value) || 0;
+                const iron = parseFloat(document.getElementById('iron').value) || 0;
+                const potassium = parseFloat(document.getElementById('potassium').value) || 0;
+                
+                // Additional vitamins if shown
+                let vitaminA = 0, vitaminC = 0, vitaminE = 0, vitaminK = 0;
+                if (showAdditionalVitamins.checked) {
+                    vitaminA = parseFloat(document.getElementById('vitamin_a').value) || 0;
+                    vitaminC = parseFloat(document.getElementById('vitamin_c').value) || 0;
+                    vitaminE = parseFloat(document.getElementById('vitamin_e').value) || 0;
+                    vitaminK = parseFloat(document.getElementById('vitamin_k').value) || 0;
+                }
+                
+                // Ingredients and allergens
+                const ingredientsList = document.getElementById('ingredients_list').value;
+                const allergens = document.getElementById('allergens').value.split(',').map(a => a.trim()).filter(a => a);
+                const facilityAllergens = document.getElementById('facility_allergens').value.split(',').map(a => a.trim()).filter(a => a);
+                
+                // Style options
+                const textColor = document.getElementById('text_color').value;
+                const backgroundColor = document.getElementById('background_color').value;
+                const transparentBackground = document.getElementById('transparent_background').checked;
+                const labelWidth = parseInt(document.getElementById('label_width').value) || 300;
+                const textAlignment = document.getElementById('text_alignment').value;
+                const textCase = document.getElementById('text_case').value;
+                
+                // Advanced options
+                const hideRecipeTitle = document.getElementById('hide_recipe_title').checked;
+                const hideNutritionFacts = document.getElementById('hide_nutrition_facts').checked;
+                const hideIngredientList = document.getElementById('hide_ingredient_list').checked;
+                const hideAllergens = document.getElementById('hide_allergens').checked;
+                const hideBusinessInfo = document.getElementById('hide_business_info').checked;
+                const labelType = document.getElementById('label_type').value;
+                
+                // Construct the label data object with default values for required fields
+                const labelData = {
+                    recipe_title: recipeTitle || "My Recipe",
+                    recipe_data: {
+                        items: [
+                            {
+                                fdc_id: 1,
+                                description: recipeTitle || "My Recipe",
+                                category: "Recipe",
+                                data_type: "Recipe",
+                                serving: {
+                                    unit: "serving",
+                                    amount: 1,
+                                    grams: 100,
+                                    description: servingSize || "1 serving"
+                                },
+                                portions: [
+                                    {
+                                        unit: "serving",
+                                        amount: 1,
+                                        grams: 100,
+                                        description: servingSize || "1 serving"
+                                    }
+                                ],
+                                nutrients: [
+                                    { key: "calories", name: "Energy", value: calories || 0, unit: "kcal" },
+                                    { key: "fat", name: "Total Fat", value: fat || 0, unit: "g" },
+                                    { key: "saturated fat", name: "Saturated Fat", value: saturatedFat || 0, unit: "g" },
+                                    { key: "trans fat", name: "Trans Fat", value: transFat || 0, unit: "g" },
+                                    { key: "cholesterol", name: "Cholesterol", value: cholesterol || 0, unit: "mg" },
+                                    { key: "sodium", name: "Sodium", value: sodium || 0, unit: "mg" },
+                                    { key: "carbohydrates", name: "Total Carbohydrate", value: carbohydrates || 0, unit: "g" },
+                                    { key: "dietary fiber", name: "Dietary Fiber", value: dietaryFiber || 0, unit: "g" },
+                                    { key: "sugars", name: "Total Sugars", value: sugars || 0, unit: "g" },
+                                    { key: "added sugars", name: "Added Sugars", value: addedSugars || 0, unit: "g" },
+                                    { key: "protein", name: "Protein", value: protein || 0, unit: "g" },
+                                    { key: "vitamin d", name: "Vitamin D", value: vitaminD || 0, unit: "mcg" },
+                                    { key: "calcium", name: "Calcium", value: calcium || 0, unit: "mg" },
+                                    { key: "iron", name: "Iron", value: iron || 0, unit: "mg" },
+                                    { key: "potassium", name: "Potassium", value: potassium || 0, unit: "mg" },
+                                    { key: "vitamin a", name: "Vitamin A", value: vitaminA || 0, unit: "mcg" },
+                                    { key: "vitamin c", name: "Vitamin C", value: vitaminC || 0, unit: "mg" },
+                                    { key: "vitamin e", name: "Vitamin E", value: vitaminE || 0, unit: "mg" },
+                                    { key: "vitamin k", name: "Vitamin K", value: vitaminK || 0, unit: "mcg" }
+                                ]
+                            }
+                        ],
+                        total: {
+                            "calories": calories || 0,
+                            "fat": fat || 0,
+                            "saturated fat": saturatedFat || 0,
+                            "trans fat": transFat || 0,
+                            "cholesterol": cholesterol || 0,
+                            "sodium": sodium || 0,
+                            "carbohydrates": carbohydrates || 0,
+                            "dietary fiber": dietaryFiber || 0,
+                            "sugars": sugars || 0,
+                            "added sugars": addedSugars || 0,
+                            "protein": protein || 0,
+                            "vitamin d": vitaminD || 0,
+                            "calcium": calcium || 0,
+                            "iron": iron || 0,
+                            "potassium": potassium || 0,
+                            "vitamin a": vitaminA || 0,
+                            "vitamin c": vitaminC || 0,
+                            "vitamin e": vitaminE || 0,
+                            "vitamin k": vitaminK || 0
+                        }
+                    },
+                    label_type: labelType || "USDA (Old FDA) Vertical",
+                    // Always include business_info with default values if not provided
+                    business_info: {
+                        business_name: businessName || "My Business",
+                        address: businessAddress || "123 Main St, Anytown, USA"
+                    }
+                };
+
+                // Always include label_sections with at least hide_business_info
+                labelData.label_sections = {
+                    hide_business_info: hideBusinessInfo || false
+                };
+                
+                // Add other optional section settings if they have values
+                if (hideRecipeTitle !== undefined) {
+                    labelData.label_sections.hide_recipe_title = hideRecipeTitle;
+                }
+                if (hideNutritionFacts !== undefined) {
+                    labelData.label_sections.hide_nutrition_facts = hideNutritionFacts;
+                }
+                if (hideIngredientList !== undefined) {
+                    labelData.label_sections.hide_ingredient_list = hideIngredientList;
+                }
+                if (hideAllergens !== undefined) {
+                    labelData.label_sections.hide_allergens = hideAllergens;
+                }
+
+                if (servingSize || servingsPerContainer || textColor || backgroundColor || 
+                    transparentBackground !== undefined || labelWidth || textAlignment || textCase) {
+                    labelData.label_style = {};
+                    
+                    if (servingSize) labelData.label_style.serving_size_en = servingSize;
+                    if (servingsPerContainer) labelData.label_style.servings_per_package = parseInt(servingsPerContainer);
+                    if (textColor) labelData.label_style.text_color = textColor;
+                    if (backgroundColor) labelData.label_style.background_color = backgroundColor;
+                    if (transparentBackground !== undefined) labelData.label_style.transparent_background = transparentBackground;
+                    if (labelWidth) labelData.label_style.width = labelWidth;
+                    if (textAlignment) labelData.label_style.alignment = textAlignment;
+                    if (textCase) labelData.label_style.text_case = textCase;
+                }
+
+                if (calories || fat || saturatedFat || transFat || cholesterol || sodium || 
+                    carbohydrates || dietaryFiber || sugars || addedSugars || protein || 
+                    vitaminD || calcium || iron || potassium || vitaminA || vitaminC || 
+                    vitaminE || vitaminK) {
+                    labelData.nutrition_adjustments = {};
+                    
+                    if (calories) labelData.nutrition_adjustments.calories = calories;
+                    if (fat) labelData.nutrition_adjustments.fat = fat;
+                    if (saturatedFat) labelData.nutrition_adjustments.saturated_fat = saturatedFat;
+                    if (transFat) labelData.nutrition_adjustments.trans_fat = transFat;
+                    if (cholesterol) labelData.nutrition_adjustments.cholesterol = cholesterol;
+                    if (sodium) labelData.nutrition_adjustments.sodium = sodium;
+                    if (carbohydrates) labelData.nutrition_adjustments.carbohydrates = carbohydrates;
+                    if (dietaryFiber) labelData.nutrition_adjustments.dietary_fiber = dietaryFiber;
+                    if (sugars) labelData.nutrition_adjustments.sugars = sugars;
+                    if (addedSugars) labelData.nutrition_adjustments.added_sugars = addedSugars;
+                    if (protein) labelData.nutrition_adjustments.protein = protein;
+                    if (vitaminD) labelData.nutrition_adjustments.vitamin_d = vitaminD;
+                    if (calcium) labelData.nutrition_adjustments.calcium = calcium;
+                    if (iron) labelData.nutrition_adjustments.iron = iron;
+                    if (potassium) labelData.nutrition_adjustments.potassium = potassium;
+                    if (vitaminA) labelData.nutrition_adjustments.vitamin_a = vitaminA;
+                    if (vitaminC) labelData.nutrition_adjustments.vitamin_c = vitaminC;
+                    if (vitaminE) labelData.nutrition_adjustments.vitamin_e = vitaminE;
+                    if (vitaminK) labelData.nutrition_adjustments.vitamin_k = vitaminK;
+                }
+
+                // Only add business info if at least one field has a value
+                if (businessName || businessAddress) {
+                    labelData.business_info = {};
+                    if (businessName) labelData.business_info.business_name = businessName;
+                    if (businessAddress) labelData.business_info.address = businessAddress;
+                }
+
+                // Only add allergens if they exist
+                if (allergens && allergens.length > 0) {
+                    labelData.allergens = allergens;
+                }
+
+                // Only add facility allergens if they exist
+                if (facilityAllergens && facilityAllergens.length > 0) {
+                    labelData.facility_allergens = facilityAllergens;
+                }
+
+                // Only add ingredients list if it exists
+                if (ingredientsList) {
+                    labelData.ingredients_list = ingredientsList;
+                }
+
+                return labelData;
+            }
+            
+            // Initialize with some default values
+            document.getElementById('recipe_title').value = 'My Recipe';
+            document.getElementById('calories').value = '200';
+            document.getElementById('fat').value = '10';
+            document.getElementById('carbohydrates').value = '25';
+            document.getElementById('protein').value = '5';
+        });
+    </script>
+</body>
+</html>

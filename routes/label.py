@@ -6,8 +6,9 @@ This module defines the API endpoints for generating USDA Approved Labels.
 
 import os
 from pathlib import Path
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
 from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from typing import Dict
 
 from models import LabelInput, LabelOutput, LabelValidationError
@@ -18,6 +19,9 @@ TEMP_DIR = Path(__file__).parent.parent / "temp"
 
 # Ensure temp directory exists
 TEMP_DIR.mkdir(exist_ok=True)
+
+# Set up templates
+templates = Jinja2Templates(directory="templates")
 
 router = APIRouter(
     prefix="/label",
@@ -159,3 +163,19 @@ def embed_label(label_id: str):
         html_content = f.read()
     
     return HTMLResponse(content=html_content)
+
+
+@router.get("/editor", response_class=HTMLResponse, summary="Label Editor UI")
+def label_editor(request: Request):
+    """
+    Interactive web-based editor for creating and customizing nutrition labels.
+    
+    This UI allows users to:
+    - Edit all label fields in real-time
+    - Preview the label as changes are made
+    - Export the final label as PDF, PNG, or embedded HTML
+    
+    Returns:
+        The HTML page for the label editor
+    """
+    return templates.TemplateResponse("label_editor.html", {"request": request})

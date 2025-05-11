@@ -123,7 +123,8 @@ def generate_label(label_input: LabelInput) -> LabelOutput:
             "label_type": label_input.label_type,
             "business_info": label_input.business_info.model_dump() if label_input.business_info else {},
             "allergens": label_input.allergens if label_input.allergens else [],
-            "facility_allergens": label_input.facility_allergens if label_input.facility_allergens else []
+            "facility_allergens": label_input.facility_allergens if label_input.facility_allergens else [],
+            "ingredients_list": label_input.ingredients_list if label_input.ingredients_list else ""
         }
         
         # Generate the label files

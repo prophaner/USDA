@@ -7,9 +7,13 @@ for USDA API calls (1,000 requests per hour per IP address).
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
 import asyncio
+import os
+from pathlib import Path
 
 from config import settings
 from routes.search_async import router as search_router
@@ -17,6 +21,10 @@ from routes.ingredient_async import router as ingredient_router
 from routes.recipe_async import router as recipe_router
 from routes.label_async import router as label_router
 from services.rate_limiter import usda_rate_limiter
+
+# Ensure static directory exists
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
 
 # ---------------------------------------------------------------------------
 # Lifespan context manager for startup/shutdown events
@@ -87,6 +95,11 @@ async def add_rate_limit_headers(request: Request, call_next):
     return response
 
 # ---------------------------------------------------------------------------
+# Mount static files
+# ---------------------------------------------------------------------------
+app.mount("/static", StaticFiles(directory=str(static_dir.absolute())), name="static")
+
+# ---------------------------------------------------------------------------
 # Include Routers
 # ---------------------------------------------------------------------------
 # Each router already defines its own prefix (e.g. /search, /ingredient, /recipe, /label)
@@ -96,10 +109,16 @@ app.include_router(recipe_router)
 app.include_router(label_router)
 
 # ---------------------------------------------------------------------------
-# Root health-check
+# Root routes
 # ---------------------------------------------------------------------------
-@app.get("/", summary="Health check")
+@app.get("/", summary="Redirect to label editor")
 async def root():
+    """Redirect to the label editor interface."""
+    return RedirectResponse(url="/static/label_editor.html")
+
+@app.get("/api", summary="API health check")
+async def api_root():
+    """Health check endpoint for the API."""
     return {"message": "API running — see /docs for endpoints"}
 
 # ---------------------------------------------------------------------------

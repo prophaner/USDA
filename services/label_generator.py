@@ -51,6 +51,46 @@ def generate_label_files(label_data: Dict) -> Tuple[str, str, str]:
             - Path to the PNG file
             - Path to the HTML file
     """
+    # Ensure nutrition_adjustments exists and has default values
+    if 'nutrition_adjustments' not in label_data:
+        label_data['nutrition_adjustments'] = {}
+    
+    # Set default values for all nutrition fields
+    default_nutrition = {
+        'calories': 0,
+        'fat': 0,
+        'saturated_fat': 0,
+        'trans_fat': 0,
+        'cholesterol': 0,
+        'sodium': 0,
+        'carbohydrates': 0,
+        'dietary_fiber': 0,
+        'sugars': 0,
+        'added_sugars': 0,
+        'protein': 0,
+        'vitamin_d': 0,
+        'calcium': 0,
+        'iron': 0,
+        'potassium': 0,
+        'vitamin_a': 0,
+        'vitamin_c': 0,
+        'vitamin_e': 0,
+        'vitamin_k': 0
+    }
+    
+    # Update nutrition_adjustments with default values for missing fields
+    for key, default_value in default_nutrition.items():
+        if key not in label_data['nutrition_adjustments'] or label_data['nutrition_adjustments'][key] is None:
+            label_data['nutrition_adjustments'][key] = default_value
+    
+    # Ensure label_sections exists
+    if 'label_sections' not in label_data:
+        label_data['label_sections'] = {}
+    
+    # Ensure label_style exists
+    if 'label_style' not in label_data:
+        label_data['label_style'] = {}
+    
     # Generate a unique ID for the files
     label_id = label_data.get("id", str(uuid.uuid4()))
     
@@ -110,20 +150,52 @@ def generate_pdf(label_data: Dict, label_id: str) -> str:
             content.append(Paragraph(f"Servings Per Container: {label_data['label_style']['servings_per_package']}", normal_style))
         content.append(Spacer(1, 12))
     
+    # Get nutrition adjustments with defaults
+    nutrition = label_data.get('nutrition_adjustments', {})
+    calories = nutrition.get('calories', 0)
+    if calories is None: calories = 0
+    
+    fat = nutrition.get('fat', 0)
+    if fat is None: fat = 0
+    
+    saturated_fat = nutrition.get('saturated_fat', 0)
+    if saturated_fat is None: saturated_fat = 0
+    
+    trans_fat = nutrition.get('trans_fat', 0)
+    if trans_fat is None: trans_fat = 0
+    
+    cholesterol = nutrition.get('cholesterol', 0)
+    if cholesterol is None: cholesterol = 0
+    
+    sodium = nutrition.get('sodium', 0)
+    if sodium is None: sodium = 0
+    
+    carbohydrates = nutrition.get('carbohydrates', 0)
+    if carbohydrates is None: carbohydrates = 0
+    
+    dietary_fiber = nutrition.get('dietary_fiber', 0)
+    if dietary_fiber is None: dietary_fiber = 0
+    
+    sugars = nutrition.get('sugars', 0)
+    if sugars is None: sugars = 0
+    
+    protein = nutrition.get('protein', 0)
+    if protein is None: protein = 0
+    
     # Create nutrition facts table data
     table_data = [
         ["Amount Per Serving", ""],
-        ["Calories", f"{label_data['nutrition_adjustments']['calories']}"],
+        ["Calories", f"{calories}"],
         ["% Daily Value*", ""],
-        ["Total Fat", f"{label_data['nutrition_adjustments']['fat']}g", f"{int(label_data['nutrition_adjustments']['fat'] * 100 / 65)}%"],
-        ["Saturated Fat", f"{label_data['nutrition_adjustments']['saturated_fat']}g", f"{int(label_data['nutrition_adjustments']['saturated_fat'] * 100 / 20)}%"],
-        ["Trans Fat", f"{label_data['nutrition_adjustments']['trans_fat']}g", ""],
-        ["Cholesterol", f"{label_data['nutrition_adjustments']['cholesterol']}mg", f"{int(label_data['nutrition_adjustments']['cholesterol'] * 100 / 300)}%"],
-        ["Sodium", f"{label_data['nutrition_adjustments']['sodium']}mg", f"{int(label_data['nutrition_adjustments']['sodium'] * 100 / 2400)}%"],
-        ["Total Carbohydrate", f"{label_data['nutrition_adjustments']['carbohydrates']}g", f"{int(label_data['nutrition_adjustments']['carbohydrates'] * 100 / 300)}%"],
-        ["Dietary Fiber", f"{label_data['nutrition_adjustments']['dietary_fiber']}g", f"{int(label_data['nutrition_adjustments']['dietary_fiber'] * 100 / 25)}%"],
-        ["Total Sugars", f"{label_data['nutrition_adjustments']['sugars']}g", ""],
-        ["Protein", f"{label_data['nutrition_adjustments']['protein']}g", ""]
+        ["Total Fat", f"{fat}g", f"{int(fat * 100 / 65)}%" if fat > 0 else "0%"],
+        ["Saturated Fat", f"{saturated_fat}g", f"{int(saturated_fat * 100 / 20)}%" if saturated_fat > 0 else "0%"],
+        ["Trans Fat", f"{trans_fat}g", ""],
+        ["Cholesterol", f"{cholesterol}mg", f"{int(cholesterol * 100 / 300)}%" if cholesterol > 0 else "0%"],
+        ["Sodium", f"{sodium}mg", f"{int(sodium * 100 / 2400)}%" if sodium > 0 else "0%"],
+        ["Total Carbohydrate", f"{carbohydrates}g", f"{int(carbohydrates * 100 / 300)}%" if carbohydrates > 0 else "0%"],
+        ["Dietary Fiber", f"{dietary_fiber}g", f"{int(dietary_fiber * 100 / 25)}%" if dietary_fiber > 0 else "0%"],
+        ["Total Sugars", f"{sugars}g", ""],
+        ["Protein", f"{protein}g", ""]
     ]
     
     # Create the table
@@ -238,7 +310,9 @@ def generate_png(label_data: Dict, label_id: str) -> str:
     
     # Draw Calories
     draw.text((30, y_pos), "Calories", fill=txt_color, font=normal_font)
-    draw.text((width - 100, y_pos), f"{label_data['nutrition_adjustments']['calories']}", fill=txt_color, font=normal_font)
+    calories = label_data.get('nutrition_adjustments', {}).get('calories', 0)
+    if calories is None: calories = 0
+    draw.text((width - 100, y_pos), f"{calories}", fill=txt_color, font=normal_font)
     y_pos += 25
     
     # Draw a line
@@ -249,17 +323,46 @@ def generate_png(label_data: Dict, label_id: str) -> str:
     draw.text((width - 150, y_pos), "% Daily Value*", fill=txt_color, font=normal_font)
     y_pos += 25
     
+    # Get nutrition adjustments with defaults
+    nutrition = label_data.get('nutrition_adjustments', {})
+    fat = nutrition.get('fat', 0)
+    if fat is None: fat = 0
+    
+    saturated_fat = nutrition.get('saturated_fat', 0)
+    if saturated_fat is None: saturated_fat = 0
+    
+    trans_fat = nutrition.get('trans_fat', 0)
+    if trans_fat is None: trans_fat = 0
+    
+    cholesterol = nutrition.get('cholesterol', 0)
+    if cholesterol is None: cholesterol = 0
+    
+    sodium = nutrition.get('sodium', 0)
+    if sodium is None: sodium = 0
+    
+    carbohydrates = nutrition.get('carbohydrates', 0)
+    if carbohydrates is None: carbohydrates = 0
+    
+    dietary_fiber = nutrition.get('dietary_fiber', 0)
+    if dietary_fiber is None: dietary_fiber = 0
+    
+    sugars = nutrition.get('sugars', 0)
+    if sugars is None: sugars = 0
+    
+    protein = nutrition.get('protein', 0)
+    if protein is None: protein = 0
+    
     # Draw nutrition facts
     nutrients = [
-        ("Total Fat", f"{label_data['nutrition_adjustments']['fat']}g", f"{int(label_data['nutrition_adjustments']['fat'] * 100 / 65)}%"),
-        ("Saturated Fat", f"{label_data['nutrition_adjustments']['saturated_fat']}g", f"{int(label_data['nutrition_adjustments']['saturated_fat'] * 100 / 20)}%"),
-        ("Trans Fat", f"{label_data['nutrition_adjustments']['trans_fat']}g", ""),
-        ("Cholesterol", f"{label_data['nutrition_adjustments']['cholesterol']}mg", f"{int(label_data['nutrition_adjustments']['cholesterol'] * 100 / 300)}%"),
-        ("Sodium", f"{label_data['nutrition_adjustments']['sodium']}mg", f"{int(label_data['nutrition_adjustments']['sodium'] * 100 / 2400)}%"),
-        ("Total Carbohydrate", f"{label_data['nutrition_adjustments']['carbohydrates']}g", f"{int(label_data['nutrition_adjustments']['carbohydrates'] * 100 / 300)}%"),
-        ("Dietary Fiber", f"{label_data['nutrition_adjustments']['dietary_fiber']}g", f"{int(label_data['nutrition_adjustments']['dietary_fiber'] * 100 / 25)}%"),
-        ("Total Sugars", f"{label_data['nutrition_adjustments']['sugars']}g", ""),
-        ("Protein", f"{label_data['nutrition_adjustments']['protein']}g", "")
+        ("Total Fat", f"{fat}g", f"{int(fat * 100 / 65)}%" if fat > 0 else "0%"),
+        ("Saturated Fat", f"{saturated_fat}g", f"{int(saturated_fat * 100 / 20)}%" if saturated_fat > 0 else "0%"),
+        ("Trans Fat", f"{trans_fat}g", ""),
+        ("Cholesterol", f"{cholesterol}mg", f"{int(cholesterol * 100 / 300)}%" if cholesterol > 0 else "0%"),
+        ("Sodium", f"{sodium}mg", f"{int(sodium * 100 / 2400)}%" if sodium > 0 else "0%"),
+        ("Total Carbohydrate", f"{carbohydrates}g", f"{int(carbohydrates * 100 / 300)}%" if carbohydrates > 0 else "0%"),
+        ("Dietary Fiber", f"{dietary_fiber}g", f"{int(dietary_fiber * 100 / 25)}%" if dietary_fiber > 0 else "0%"),
+        ("Total Sugars", f"{sugars}g", ""),
+        ("Protein", f"{protein}g", "")
     ]
     
     for nutrient, value, daily_value in nutrients:
@@ -362,48 +465,61 @@ def generate_html(label_data: Dict, label_id: str) -> str:
     # Load the template
     template = template_env.get_template("label_template.html")
     
-    # Ensure all required nutrition fields exist
+    # Get the nutrition adjustments (already defaulted in generate_label_files)
     nutrition_adjustments = label_data.get('nutrition_adjustments', {})
     
-    # Set default values for any missing nutrition fields
-    default_nutrition = {
-        'fat': 0,
-        'saturated_fat': 0,
-        'trans_fat': 0,
-        'cholesterol': 0,
-        'sodium': 0,
-        'carbohydrates': 0,
-        'dietary_fiber': 0,
-        'sugars': 0,
-        'added_sugars': 0,
-        'protein': 0,
-        'vitamin_d': 0,
-        'calcium': 0,
-        'iron': 0,
-        'potassium': 0
-    }
-    
-    # Update nutrition_adjustments with default values for missing fields
-    for key, default_value in default_nutrition.items():
-        if key not in nutrition_adjustments:
-            nutrition_adjustments[key] = default_value
-    
-    # Update the label_data with the complete nutrition_adjustments
-    label_data['nutrition_adjustments'] = nutrition_adjustments
-    
     # Calculate daily values percentages
-    daily_values = {
-        "fat": int(nutrition_adjustments['fat'] * 100 / 65),
-        "saturated_fat": int(nutrition_adjustments['saturated_fat'] * 100 / 20),
-        "cholesterol": int(nutrition_adjustments['cholesterol'] * 100 / 300),
-        "sodium": int(nutrition_adjustments['sodium'] * 100 / 2400),
-        "carbohydrates": int(nutrition_adjustments['carbohydrates'] * 100 / 300),
-        "dietary_fiber": int(nutrition_adjustments['dietary_fiber'] * 100 / 25),
-        "vitamin_d": int(nutrition_adjustments['vitamin_d'] * 100 / 20) if nutrition_adjustments.get('vitamin_d', 0) > 0 else 0,
-        "calcium": int(nutrition_adjustments['calcium'] * 100 / 1300) if nutrition_adjustments.get('calcium', 0) > 0 else 0,
-        "iron": int(nutrition_adjustments['iron'] * 100 / 18) if nutrition_adjustments.get('iron', 0) > 0 else 0,
-        "potassium": int(nutrition_adjustments['potassium'] * 100 / 4700) if nutrition_adjustments.get('potassium', 0) > 0 else 0
-    }
+    try:
+        fat = nutrition_adjustments.get('fat', 0)
+        if fat is None: fat = 0
+        
+        saturated_fat = nutrition_adjustments.get('saturated_fat', 0)
+        if saturated_fat is None: saturated_fat = 0
+        
+        cholesterol = nutrition_adjustments.get('cholesterol', 0)
+        if cholesterol is None: cholesterol = 0
+        
+        sodium = nutrition_adjustments.get('sodium', 0)
+        if sodium is None: sodium = 0
+        
+        carbohydrates = nutrition_adjustments.get('carbohydrates', 0)
+        if carbohydrates is None: carbohydrates = 0
+        
+        dietary_fiber = nutrition_adjustments.get('dietary_fiber', 0)
+        if dietary_fiber is None: dietary_fiber = 0
+        
+        vitamin_d = nutrition_adjustments.get('vitamin_d', 0)
+        if vitamin_d is None: vitamin_d = 0
+        
+        calcium = nutrition_adjustments.get('calcium', 0)
+        if calcium is None: calcium = 0
+        
+        iron = nutrition_adjustments.get('iron', 0)
+        if iron is None: iron = 0
+        
+        potassium = nutrition_adjustments.get('potassium', 0)
+        if potassium is None: potassium = 0
+        
+        daily_values = {
+            "fat": int(fat * 100 / 65) if fat > 0 else 0,
+            "saturated_fat": int(saturated_fat * 100 / 20) if saturated_fat > 0 else 0,
+            "cholesterol": int(cholesterol * 100 / 300) if cholesterol > 0 else 0,
+            "sodium": int(sodium * 100 / 2400) if sodium > 0 else 0,
+            "carbohydrates": int(carbohydrates * 100 / 300) if carbohydrates > 0 else 0,
+            "dietary_fiber": int(dietary_fiber * 100 / 25) if dietary_fiber > 0 else 0,
+            "vitamin_d": int(vitamin_d * 100 / 20) if vitamin_d > 0 else 0,
+            "calcium": int(calcium * 100 / 1300) if calcium > 0 else 0,
+            "iron": int(iron * 100 / 18) if iron > 0 else 0,
+            "potassium": int(potassium * 100 / 4700) if potassium > 0 else 0
+        }
+    except Exception as e:
+        # If any calculation fails, use default values
+        print(f"Error calculating daily values: {str(e)}")
+        daily_values = {
+            "fat": 0, "saturated_fat": 0, "cholesterol": 0, "sodium": 0,
+            "carbohydrates": 0, "dietary_fiber": 0, "vitamin_d": 0,
+            "calcium": 0, "iron": 0, "potassium": 0
+        }
     
     # Ensure label_style exists
     if 'label_style' not in label_data:
@@ -884,9 +1000,9 @@ def create_html_template(template_path: Path) -> None:
         
         <!-- Ingredients and Allergens Section -->
         <div id="ingredientsandallergens">
-            {% if label_data.ingredients|default('') %}
+            {% if not label_data.label_sections.hide_ingredient_list|default(false) and label_data.ingredients_list|default('') %}
             <div id="recipe-show-ingredient-list">
-                Ingredients: {{ label_data.ingredients }}
+                Ingredients: {{ label_data.ingredients_list }}
             </div>
             {% endif %}
             
