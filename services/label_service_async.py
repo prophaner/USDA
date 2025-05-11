@@ -10,6 +10,8 @@ import json
 import uuid
 import os
 from datetime import datetime
+from pathlib import Path
+import asyncio
 
 from models import (
     LabelInput, 
@@ -18,6 +20,8 @@ from models import (
     RecipeOutput,
     BusinessInfo
 )
+
+from services.label_generator import generate_label_files
 
 
 async def validate_label_input(label_input: LabelInput) -> Tuple[bool, Optional[List[str]]]:
@@ -121,9 +125,14 @@ async def generate_label(label_input: LabelInput) -> LabelOutput:
         "facility_allergens": label_input.facility_allergens if label_input.facility_allergens else []
     }
     
-    # In a real implementation, this would generate actual label files
-    # For now, we'll just return mock URLs
-    base_url = "https://api.example.com/labels"
+    # Generate the label files (run in a thread pool to avoid blocking)
+    loop = asyncio.get_event_loop()
+    pdf_path, png_path, html_path = await loop.run_in_executor(
+        None, generate_label_files, label_data
+    )
+    
+    # Convert file paths to URLs
+    base_url = "/api/labels"
     label_url = f"{base_url}/{label_id}"
     pdf_download_url = f"{base_url}/{label_id}/download/pdf"
     png_download_url = f"{base_url}/{label_id}/download/png"

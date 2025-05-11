@@ -16,20 +16,20 @@ if response.status_code == 200:
     data = response.json()
     
     print("\n=== LABEL GENERATION SUCCESSFUL ===")
-    print(f"\nLabel URL: {data['label_url']}")
-    print(f"\nPDF Download URL: {data['pdf_download_url']}")
-    print(f"\nPNG Download URL: {data['png_download_url']}")
     
-    print("\nEmbedded HTML Code:")
+    print("\nDownload Options:")
+    print(f"1. PDF Download: {data['pdf_download_url']}")
+    print(f"2. PNG Download: {data['png_download_url']}")
+    
+    print("\nEmbed Code:")
     print("--------------------")
     print(data['embedded_html'])
     print("--------------------")
     
-    print("\nLabel Data (partial):")
-    print(f"- Recipe Title: {data['label_data']['recipe_title']}")
-    print(f"- Label Type: {data['label_data']['label_type']}")
-    print(f"- Timestamp: {data['label_data']['timestamp']}")
-    print(f"- Number of Ingredients: {len(data['label_data']['recipe_data']['items'])}")
+    print("\nUsage Instructions:")
+    print("1. To download as PDF: Use the PDF Download URL")
+    print("2. To download as PNG: Use the PNG Download URL")
+    print("3. To embed in your application: Copy and paste the embed code into your HTML")
 else:
     print("\nError Response:")
     pprint.pprint(response.json())
